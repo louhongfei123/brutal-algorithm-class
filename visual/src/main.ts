@@ -57,7 +57,12 @@ async function main() {
     mergeQueue,
     onLanguageChange.copy(),
   );
-  component.DataSourceComponent("data-source-1", array, resetChannel);
+  component.DataSourceComponent(
+    "data-source-1",
+    array,
+    resetChannel,
+    onLanguageChange,
+  );
 
   // Kick off
   console.log("begin sort", array);

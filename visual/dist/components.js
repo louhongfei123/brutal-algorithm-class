@@ -13,18 +13,8 @@ export function SortVisualizationComponent(id, arrays, changeLanguage) {
     }
     let shadowRoot = ele.shadowRoot;
     // Languages
-    (async () => {
-        let div = shadowRoot.getElementById("sort-name");
-        if (div) {
-            div.innerText = i18n.default[id].cn;
-        }
-        while (true) {
-            let lang = await changeLanguage.pop();
-            console.log("on lang change", lang);
-            // @ts-ignore
-            div.innerText = i18n.default[id][lang];
-        }
-    })();
+    let div = shadowRoot.getElementById("sort-name");
+    i18nStringComponent(div, id, changeLanguage);
     // Animation SVG
     let currentSpeed = {
         value: 1000,
@@ -114,7 +104,7 @@ function CreateArrayAnimationSVGComponent(parent, id, x, y) {
         return rect;
     }
 }
-export function DataSourceComponent(id, data, resetChannel) {
+export function DataSourceComponent(id, data, resetChannel, onLanguageChange) {
     let ele = get(id);
     if (!ele.shadowRoot) {
         throw new Error(`element ${ele.id} does not have shadowRoot`);
@@ -132,6 +122,9 @@ export function DataSourceComponent(id, data, resetChannel) {
         await resetChannel.put(array);
     });
     resetChannel.put(data);
+    // Languages
+    i18nStringComponent(resetButton, "reset-button", onLanguageChange.copy());
+    i18nStringComponent(ele.shadowRoot.getElementById("random"), "random", onLanguageChange.copy());
 }
 function get(id) {
     let ele = document.getElementById(id);
@@ -178,5 +171,15 @@ export function languages(id) {
     }
     // @ts-ignore
     return csp.multi(changeLanguage);
+}
+async function i18nStringComponent(element, id, onLanguageChange) {
+    // @ts-ignore
+    element.innerText = i18n.default[id].cn;
+    while (true) {
+        console.log("wait for lang change", id, element);
+        let lang = await onLanguageChange.pop();
+        console.log("on lang change", lang);
+        element.innerText = i18n.default[id][lang];
+    }
 }
 //# sourceMappingURL=components.js.map

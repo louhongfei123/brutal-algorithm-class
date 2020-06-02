@@ -39,7 +39,7 @@ async function main() {
     let onLanguageChange = component.languages("languages");
     component.SortVisualizationComponent("insertion-sort", insertQueue, onLanguageChange.copy());
     component.SortVisualizationComponent("merge-sort", mergeQueue, onLanguageChange.copy());
-    component.DataSourceComponent("data-source-1", array, resetChannel);
+    component.DataSourceComponent("data-source-1", array, resetChannel, onLanguageChange);
     // Kick off
     console.log("begin sort", array);
     // @ts-ignore

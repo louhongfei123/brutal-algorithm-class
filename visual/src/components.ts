@@ -25,18 +25,8 @@ export function SortVisualizationComponent(
   let shadowRoot = ele.shadowRoot;
 
   // Languages
-  (async () => {
-    let div = shadowRoot.getElementById("sort-name");
-    if (div) {
-      div.innerText = i18n.default[id].cn;
-    }
-    while (true) {
-      let lang = await changeLanguage.pop();
-      console.log("on lang change", lang);
-      // @ts-ignore
-      div.innerText = i18n.default[id][lang];
-    }
-  })();
+  let div = shadowRoot.getElementById("sort-name");
+  i18nStringComponent(div, id, changeLanguage);
 
   // Animation SVG
   let currentSpeed = {
@@ -153,6 +143,7 @@ export function DataSourceComponent(
   id: string,
   data: number[],
   resetChannel: csp.PutChannel<number[]>,
+  onLanguageChange: csp.Multicaster<i18n.Language>,
 ) {
   let ele = get(id);
   if (!ele.shadowRoot) {
@@ -171,6 +162,14 @@ export function DataSourceComponent(
     await resetChannel.put(array);
   });
   resetChannel.put(data);
+
+  // Languages
+  i18nStringComponent(resetButton, "reset-button", onLanguageChange.copy());
+  i18nStringComponent(
+    ele.shadowRoot.getElementById("random"),
+    "random",
+    onLanguageChange.copy(),
+  );
 }
 
 function get(id: string): HTMLElement {
@@ -222,4 +221,19 @@ export function languages(id: string): csp.Multicaster<i18n.Language> {
   }
   // @ts-ignore
   return csp.multi(changeLanguage);
+}
+
+async function i18nStringComponent(
+  element: HTMLElement,
+  stringID: string,
+  onLanguageChange: Channel<i18n.Language>,
+) {
+  // @ts-ignore
+  element.innerText = i18n.default[id].cn;
+  while (true) {
+    console.log("wait for lang change", stringID, element);
+    let lang = await onLanguageChange.pop();
+    console.log("on lang change", lang);
+    element.innerText = i18n.default[stringID][lang];
+  }
 }
