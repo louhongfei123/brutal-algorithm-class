@@ -1,12 +1,20 @@
 // @ts-nocheck
 import { chan, select, after, } from "https://creatcodebuild.github.io/csp/dist/csp.js";
+import * as i18n from "./language.js";
 export function SortVisualizationComponent(id, arrays) {
+    // init channels
+    let stop = chan();
+    let resume = chan();
+    // Init The template
     let ele = document.getElementById(id);
     if (!ele || !ele.shadowRoot) {
         throw new Error("ele has no shadow root");
     }
-    let stop = chan();
-    let resume = chan();
+    let shadowRoot = ele.shadowRoot;
+    let div = shadowRoot.getElementById("sort-name");
+    if (div) {
+        div.innerText = i18n.default[id].cn;
+    }
     // Animation SVG
     let currentSpeed = {
         value: 1000,
@@ -14,6 +22,7 @@ export function SortVisualizationComponent(id, arrays) {
     let onclick = chan();
     CreateArrayAnimationSVGComponent(ele.shadowRoot, id + "animation", 0, 0)(arrays, stop, resume, currentSpeed, onclick);
     // Stop/Resume Button
+    console.log(ele.shadowRoot);
     let button = ele.shadowRoot.querySelector("button");
     if (!button) {
         throw new Error();

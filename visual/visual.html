@@ -16,7 +16,7 @@
 			}
 		</style>
 		<div class="flexbox">
-			<slot name="sort-name">Sort Name</slot>
+			<div id="sort-name">Sort Name</div>
 			<svg width="200" , height="100"></svg>
 			<div>
 				<button>stop</button>
@@ -40,18 +40,22 @@
 				<button>降序</button>
 				<button>有序错位</button>
 				<button>堆化</button>
-                <button id="reset">重置</button>
+				<button id="reset">重置</button>
 			</div>
 			<textarea></textarea>
 		</div>
 	</template>
 	<sort-visualization id="insertion-sort">
-		<p slot="sort-name">Insertion Sort 插入排序</p>
+		<!-- <p slot="sort-name">Insertion Sort 插入排序</p> -->
 	</sort-visualization>
 	<sort-visualization id="merge-sort">
-		<p slot="sort-name">Merge Sort 归并排序</p>
+		<!-- <p slot="sort-name">Merge Sort 归并排序</p> -->
 	</sort-visualization>
 	<data-source id="data-source-1"></data-source>
+	<select id="languages">
+        <option value="cn">中文</option>
+        <option value="en">English</option>
+    </select>
 </body>
 
 

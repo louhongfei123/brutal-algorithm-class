@@ -6,17 +6,26 @@ import {
   after,
 } from "https://creatcodebuild.github.io/csp/dist/csp.ts";
 import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
+import * as i18n from "./language.ts";
 
 export function SortVisualizationComponent(
   id: string,
   arrays: Channel<number[]>,
 ) {
+  // init channels
+  let stop = chan<null>();
+  let resume = chan<null>();
+
+  // Init The template
   let ele: HTMLElement | null = document.getElementById(id);
   if (!ele || !ele.shadowRoot) {
     throw new Error("ele has no shadow root");
   }
-  let stop = chan<null>();
-  let resume = chan<null>();
+  let shadowRoot = ele.shadowRoot;
+  let div = shadowRoot.getElementById("sort-name");
+  if (div) {
+    div.innerText = i18n.default[id].cn;
+  }
 
   // Animation SVG
   let currentSpeed = {
@@ -32,6 +41,7 @@ export function SortVisualizationComponent(
   );
 
   // Stop/Resume Button
+  console.log(ele.shadowRoot);
   let button = ele.shadowRoot.querySelector("button");
   if (!button) {
     throw new Error();
