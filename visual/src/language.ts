@@ -1,4 +1,4 @@
-type Language = "cn" | "en";
+export type Language = "cn" | "en";
 
 // https://github.com/microsoft/TypeScript/issues/24220
 type LanguageMap = {

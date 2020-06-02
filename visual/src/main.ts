@@ -46,15 +46,18 @@ async function main() {
   // console.log(mergeQueue2);
 
   // Components
-  component.SortVisualizationComponent("insertion-sort", insertQueue);
-  component.SortVisualizationComponent("merge-sort", mergeQueue);
+  let onLanguageChange = component.languages("languages");
+  component.SortVisualizationComponent(
+    "insertion-sort",
+    insertQueue,
+    onLanguageChange.copy(),
+  );
+  component.SortVisualizationComponent(
+    "merge-sort",
+    mergeQueue,
+    onLanguageChange.copy(),
+  );
   component.DataSourceComponent("data-source-1", array, resetChannel);
-  let languages = document.getElementById("languages");
-  if (languages) {
-    languages.addEventListener("change", function (event) {
-      console.log(event.target.value);
-    });
-  }
 
   // Kick off
   console.log("begin sort", array);

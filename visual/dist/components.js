@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { chan, select, after, } from "https://creatcodebuild.github.io/csp/dist/csp.js";
+import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.js";
 import * as i18n from "./language.js";
-export function SortVisualizationComponent(id, arrays) {
+export function SortVisualizationComponent(id, arrays, changeLanguage) {
     // init channels
     let stop = chan();
     let resume = chan();
@@ -11,10 +12,19 @@ export function SortVisualizationComponent(id, arrays) {
         throw new Error("ele has no shadow root");
     }
     let shadowRoot = ele.shadowRoot;
-    let div = shadowRoot.getElementById("sort-name");
-    if (div) {
-        div.innerText = i18n.default[id].cn;
-    }
+    // Languages
+    (async () => {
+        let div = shadowRoot.getElementById("sort-name");
+        if (div) {
+            div.innerText = i18n.default[id].cn;
+        }
+        while (true) {
+            let lang = await changeLanguage.pop();
+            console.log("on lang change", lang);
+            // @ts-ignore
+            div.innerText = i18n.default[id][lang];
+        }
+    })();
     // Animation SVG
     let currentSpeed = {
         value: 1000,
@@ -155,5 +165,18 @@ async function needToStop(stop, resume) {
         }
     })();
     return stopResume;
+}
+export function languages(id) {
+    let changeLanguage = csp.chan();
+    let languages = document.getElementById(id);
+    if (languages) {
+        languages.addEventListener("change", function (event) {
+            // @ts-ignore
+            console.log(event.target.value);
+            changeLanguage.put(event.target.value);
+        });
+    }
+    // @ts-ignore
+    return csp.multi(changeLanguage);
 }
 //# sourceMappingURL=components.js.map

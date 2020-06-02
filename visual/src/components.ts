@@ -11,6 +11,7 @@ import * as i18n from "./language.ts";
 export function SortVisualizationComponent(
   id: string,
   arrays: Channel<number[]>,
+  changeLanguage: Channel<i18n.Language>,
 ) {
   // init channels
   let stop = chan<null>();
@@ -22,10 +23,20 @@ export function SortVisualizationComponent(
     throw new Error("ele has no shadow root");
   }
   let shadowRoot = ele.shadowRoot;
-  let div = shadowRoot.getElementById("sort-name");
-  if (div) {
-    div.innerText = i18n.default[id].cn;
-  }
+
+  // Languages
+  (async () => {
+    let div = shadowRoot.getElementById("sort-name");
+    if (div) {
+      div.innerText = i18n.default[id].cn;
+    }
+    while (true) {
+      let lang = await changeLanguage.pop();
+      console.log("on lang change", lang);
+      // @ts-ignore
+      div.innerText = i18n.default[id][lang];
+    }
+  })();
 
   // Animation SVG
   let currentSpeed = {
@@ -197,4 +208,18 @@ async function needToStop(stop: Channel<null>, resume: Channel<null>) {
     }
   })();
   return stopResume;
+}
+
+export function languages(id: string): csp.Multicaster<i18n.Language> {
+  let changeLanguage = csp.chan<i18n.Language>();
+  let languages = document.getElementById(id);
+  if (languages) {
+    languages.addEventListener("change", function (event) {
+      // @ts-ignore
+      console.log(event.target.value);
+      changeLanguage.put(event.target.value);
+    });
+  }
+  // @ts-ignore
+  return csp.multi(changeLanguage);
 }
