@@ -1,6 +1,5 @@
 // Create WebSocket connection.
-// @ts-ignore
-import { chan } from 'https://creatcodebuild.github.io/csp/dist/csp.js';
+import { chan, } from "https://creatcodebuild.github.io/csp/dist/csp.js";
 class WC {
     constructor(receive, readyChan, socket) {
         this.receive = receive;
@@ -37,9 +36,9 @@ export async function WebSocketClient(url) {
     });
     let receive = chan();
     let ready = chan();
-    socket.addEventListener('message', async function (event) {
+    socket.addEventListener("message", async function (event) {
         ready.put(null);
-        console.log('on message', event);
+        console.log("on message", event);
         await receive.put(event.data);
     });
     return new WC(receive, ready, socket);
@@ -56,3 +55,4 @@ export async function GraphQLSubscription(document, webSocketClient) {
     await webSocketClient.put(document);
     return new GraphQLSubscriptionClient(webSocketClient);
 }
+//# sourceMappingURL=client.js.map

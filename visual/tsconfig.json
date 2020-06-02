@@ -2,7 +2,8 @@
     "compilerOptions": {
         "target": "ES2018",
         "rootDir": "src",
-        "outDir": "dist"
+        "outDir": "dist",
+        "sourceMap": true
     },
     "exclude": [
         "src/server.ts"

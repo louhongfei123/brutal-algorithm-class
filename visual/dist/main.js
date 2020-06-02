@@ -1,119 +1,23 @@
 // @ts-nocheck
-import { chan, select, after } from 'https://creatcodebuild.github.io/csp/dist/csp.js';
-import { MergeSort, InsertionSort, infinite } from './sort.js';
-function SortVisualizationComponent(id, arrays) {
-    let ele = document.getElementById(id);
-    if (!ele || !ele.shadowRoot) {
-        throw new Error('ele has no shadow root');
-    }
-    let stop = chan();
-    let resume = chan();
-    // Animation SVG
-    let currentSpeed = {
-        value: 100
-    };
-    let onclick = chan();
-    CreateArrayAnimationSVGComponent(ele.shadowRoot, id + 'animation', 0, 0)(arrays, stop, resume, currentSpeed, onclick);
-    // Stop/Resume Button
-    let button = ele.shadowRoot.querySelector('button');
-    if (!button) {
-        throw new Error();
-    }
-    let stopped = false;
-    button.addEventListener('click', async () => {
-        stopped = !stopped;
-        if (stopped) {
-            button.textContent = 'resume';
-            await stop.put(null);
-        }
-        else {
-            button.textContent = 'stop';
-            await resume.put(null);
-        }
-    });
-    // Input
-    let input = ele.shadowRoot.querySelector('input');
-    if (!input) {
-        throw new Error();
-    }
-    input.addEventListener('input', async (ele, event) => {
-        currentSpeed.value = Number(ele.target.value);
-        await onclick.put('onclick');
-    });
-    input.value = currentSpeed.value;
-}
-function CreateArrayAnimationSVGComponent(parent, id, x, y) {
-    let svg = parent.querySelector('svg');
-    return async (arrays, stop, resume, changeSpeed, oninput) => {
-        let waitToResume = await needToStop(stop, resume);
-        let currentSpeed = changeSpeed.value;
-        let i = 0;
-        for await (let array of arrays) {
-            await waitToResume.pop();
-            while (svg.lastChild) {
-                svg.removeChild(svg.lastChild);
-            }
-            for (let [i, number] of Object.entries(array)) {
-                let r = rect(x + Number(i) * 4, y, 3, number);
-                svg.appendChild(r);
-            }
-            let wait = true;
-            while (wait) {
-                let a;
-                try {
-                    a = after(changeSpeed.value);
-                    currentSpeed = changeSpeed.value;
-                }
-                catch (_a) {
-                    console.log('catch', currentSpeed);
-                    a = after(currentSpeed);
-                }
-                await select([
-                    [a, async (waitedTime) => {
-                            console.log(i++, 'after', changeSpeed.value, waitedTime);
-                            wait = false;
-                        }],
-                    [oninput, async (x) => {
-                            console.log(i++, x, changeSpeed.value, currentSpeed);
-                        }]
-                ]);
-            }
-            // }
-            console.log(changeSpeed);
-        }
-    };
-    function rect(x, y, width, height) {
-        // https://developer.mozilla.org/en-US/docs/Web/API/Document/createElementNS
-        // https://stackoverflow.com/questions/12786797/draw-rectangles-dynamically-in-svg
-        let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('width', width);
-        // @ts-ignore
-        rect.setAttribute('height', height);
-        // @ts-ignore
-        rect.setAttribute('x', x);
-        rect.setAttribute('y', y);
-        // rect.classList.add(className);
-        return rect;
-    }
-}
+import { chan, } from "https://creatcodebuild.github.io/csp/dist/csp.js";
+import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.js";
+import * as sort from "./sort.js";
+import * as component from "./components.js";
 async function main() {
+    DefineComponent();
     // init an array
     let array = [];
     for (let i = 0; i < 50; i++) {
         array.push(Math.floor(Math.random() * 50));
     }
-    // event queue
+    // event channels
     let insertQueue = chan();
     let mergeQueue = chan();
     let stop = chan();
     let resume = chan();
-    // controlButton(stop, resume);
-    console.log('begin sort', array);
-    infinite(InsertionSort, array, insertQueue);
-    infinite(MergeSort, array, mergeQueue);
-    // let s1 = InsertionSort(array, insertQueue);
-    // let s2 = MergeSort(array, mergeQueue);
-    // console.log('after sort');
+    let resetChannel = chan();
+    // @ts-ignore
+    let onReset = csp.multi(resetChannel);
     let mergeQueue2 = (() => {
         let c = chan();
         (async () => {
@@ -130,79 +34,38 @@ async function main() {
         })();
         return c;
     })();
-    console.log(mergeQueue2);
+    // console.log(mergeQueue2);
     // Components
-    let resetChannel = chan();
-    DefineComponent();
-    SortVisualizationComponent('insertion-sort', insertQueue);
-    SortVisualizationComponent('merge-sort', mergeQueue2);
-    let ele = get('data-source-1');
-    if (!ele.shadowRoot) {
-        throw new Error(`element ${ele.id} does not have shadowRoot`);
-    }
-    let textarea = ele.shadowRoot.querySelector('textarea');
-    if (!textarea) {
-        throw new Error();
-    }
-    textarea.textContent = JSON.stringify(array);
-    let resetButton = ele.shadowRoot.getElementById('reset');
-    resetButton.addEventListener('click', async () => {
-        let array = JSON.parse(textarea.textContent);
-        await resetChannel.put();
-    });
+    component.SortVisualizationComponent("insertion-sort", insertQueue);
+    component.SortVisualizationComponent("merge-sort", mergeQueue);
+    component.DataSourceComponent("data-source-1", array, resetChannel);
+    // Kick off
+    console.log("begin sort", array);
+    // @ts-ignore
+    sort.Sorter2(sort.InsertionSort, onReset.copy(), insertQueue);
+    // @ts-ignore
+    sort.Sorter2(sort.MergeSort, onReset.copy(), mergeQueue);
 }
 main();
-async function needToStop(stop, resume) {
-    let stopResume = chan();
-    let stopped = false;
-    (async () => {
-        while (1) {
-            await select([
-                [resume, async () => {
-                        stopped = false;
-                        await stopResume.put();
-                    }],
-                [stop, async () => {
-                        stopped = true;
-                    }]
-            ], async () => {
-                if (stopped) {
-                    await resume.pop();
-                    stopped = false;
-                }
-                else {
-                    await stopResume.put();
-                }
-            });
-        }
-    })();
-    return stopResume;
-}
 function DefineComponent() {
     // Web Components
-    customElements.define('sort-visualization', class extends HTMLElement {
+    customElements.define("sort-visualization", class extends HTMLElement {
         constructor() {
             super();
-            let template = document.getElementById('sort-visualization');
+            let template = document.getElementById("sort-visualization");
             let templateContent = template.content;
-            const shadowRoot = this.attachShadow({ mode: 'open' })
+            const shadowRoot = this.attachShadow({ mode: "open" })
                 .appendChild(templateContent.cloneNode(true));
         }
     });
-    customElements.define('data-source', class extends HTMLElement {
+    customElements.define("data-source", class extends HTMLElement {
         constructor() {
             super();
-            let template = document.getElementById('data-source');
+            let template = document.getElementById("data-source");
             let templateContent = template.content;
-            const shadowRoot = this.attachShadow({ mode: 'open' })
+            const shadowRoot = this.attachShadow({ mode: "open" })
                 .appendChild(templateContent.cloneNode(true));
         }
     });
 }
-function get(id) {
-    let ele = document.getElementById(id);
-    if (!ele) {
-        throw new Error(`element ${id} does not exist`);
-    }
-    return ele;
-}
+//# sourceMappingURL=main.js.map
