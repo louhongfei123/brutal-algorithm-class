@@ -48,4 +48,38 @@ let words: { [id: string]: LanguageMap } = {
   },
 };
 
-export default words;
+// export default words;
+
+export async function i18nStringComponent(
+  element: HTMLElement,
+  stringID: string,
+  onLanguageChange: Channel<i18n.Language>,
+) {
+  element.innerText = words[stringID].cn;
+  while (true) {
+    // console.log("wait for lang change", stringID, element);
+    let lang = await onLanguageChange.pop();
+    // console.log("on lang change", lang);
+    element.innerText = words[stringID][lang];
+  }
+}
+
+export function i18nString(
+  stringID: string,
+  onLanguageChange: Channel<i18n.Language>,
+) {
+  let lang: i18n.Language = "cn";
+  (async () => {
+    while (true) {
+      console.log("wait for lang change", stringID);
+      lang = await onLanguageChange.pop();
+      console.log("on lang change", lang);
+    }
+  })();
+  return {
+    toString() {
+      return words[stringID][lang];
+    },
+  };
+}
+

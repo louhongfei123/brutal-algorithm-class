@@ -30,32 +30,32 @@ export function DataSourceComponent(
   resetChannel.put(data);
 
   // Languages
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     resetButton,
     "reset-button",
     onLanguageChange.copy(),
   );
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     ele.shadowRoot.getElementById("random"),
     "random",
     onLanguageChange.copy(),
   );
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     ele.shadowRoot.getElementById("ascend"),
     "ascend-button",
     onLanguageChange.copy(),
   );
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     ele.shadowRoot.getElementById("desend"),
     "desend-button",
     onLanguageChange.copy(),
   );
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     ele.shadowRoot.getElementById("ordered-shuffle"),
     "ordered-shuffle-button",
     onLanguageChange.copy(),
   );
-  component.i18nStringComponent(
+  i18n.i18nStringComponent(
     ele.shadowRoot.getElementById("heapify"),
     "heapify-button",
     onLanguageChange.copy(),
