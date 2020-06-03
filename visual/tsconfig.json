@@ -3,7 +3,8 @@
         "target": "ES2018",
         "rootDir": "src",
         "outDir": "dist",
-        "sourceMap": true
+        "sourceMap": true,
+        "allowJs": true
     },
     "exclude": [
         "src/server.ts"

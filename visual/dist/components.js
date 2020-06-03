@@ -14,7 +14,9 @@ export function SortVisualizationComponent(id, arrays, changeLanguage) {
     let shadowRoot = ele.shadowRoot;
     // Languages
     let div = shadowRoot.getElementById("sort-name");
-    i18nStringComponent(div, id, changeLanguage);
+    i18nStringComponent(div, id, changeLanguage.copy());
+    let resumeString = i18nString("resume-button", changeLanguage.copy());
+    let pauseString = i18nString("pause-button", changeLanguage.copy());
     // Animation SVG
     let currentSpeed = {
         value: 1000,
@@ -28,19 +30,30 @@ export function SortVisualizationComponent(id, arrays, changeLanguage) {
         throw new Error();
     }
     let stopped = false;
+    let currentString = pauseString;
     button.addEventListener("click", async () => {
         stopped = !stopped;
         if (stopped) {
-            // @ts-ignore
-            button.textContent = "resume";
+            currentString = resumeString;
+            button.textContent = currentString.toString();
             await stop.put(null);
         }
         else {
-            // @ts-ignore
-            button.textContent = "stop";
+            currentString = pauseString;
+            button.textContent = currentString.toString();
             await resume.put(null);
         }
     });
+    button.innerText = currentString.toString();
+    (async () => {
+        let listen = changeLanguage.copy();
+        while (true) {
+            console.log("wait for lang change xxx");
+            let lang = await listen.pop();
+            button.textContent = currentString.toString();
+            console.log("on lang change", lang);
+        }
+    })();
     // Input
     let input = ele.shadowRoot.querySelector("input");
     if (!input) {
@@ -103,61 +116,32 @@ function CreateArrayAnimationSVGComponent(parent, id, x, y) {
         // rect.classList.add(className);
         return rect;
     }
-}
-export function DataSourceComponent(id, data, resetChannel, onLanguageChange) {
-    let ele = get(id);
-    if (!ele.shadowRoot) {
-        throw new Error(`element ${ele.id} does not have shadowRoot`);
-    }
-    let textarea = ele.shadowRoot.querySelector("textarea");
-    if (!textarea) {
-        throw new Error();
-    }
-    textarea.textContent = JSON.stringify(data);
-    let resetButton = ele.shadowRoot.getElementById("reset");
-    resetButton.addEventListener("click", async () => {
-        console.log(textarea.value);
-        let array = JSON.parse(textarea.value);
-        console.log("current text area", array);
-        await resetChannel.put(array);
-    });
-    resetChannel.put(data);
-    // Languages
-    i18nStringComponent(resetButton, "reset-button", onLanguageChange.copy());
-    i18nStringComponent(ele.shadowRoot.getElementById("random"), "random", onLanguageChange.copy());
-}
-function get(id) {
-    let ele = document.getElementById(id);
-    if (!ele) {
-        throw new Error(`element ${id} does not exist`);
-    }
-    return ele;
-}
-async function needToStop(stop, resume) {
-    let stopResume = chan();
-    let stopped = false;
-    (async () => {
-        while (1) {
-            await select([
-                [resume, async () => {
+    async function needToStop(stop, resume) {
+        let stopResume = chan();
+        let stopped = false;
+        (async () => {
+            while (1) {
+                await select([
+                    [resume, async () => {
+                            stopped = false;
+                            await stopResume.put();
+                        }],
+                    [stop, async () => {
+                            stopped = true;
+                        }],
+                ], async () => {
+                    if (stopped) {
+                        await resume.pop();
                         stopped = false;
+                    }
+                    else {
                         await stopResume.put();
-                    }],
-                [stop, async () => {
-                        stopped = true;
-                    }],
-            ], async () => {
-                if (stopped) {
-                    await resume.pop();
-                    stopped = false;
-                }
-                else {
-                    await stopResume.put();
-                }
-            });
-        }
-    })();
-    return stopResume;
+                    }
+                });
+            }
+        })();
+        return stopResume;
+    }
 }
 export function languages(id) {
     let changeLanguage = csp.chan();
@@ -172,14 +156,28 @@ export function languages(id) {
     // @ts-ignore
     return csp.multi(changeLanguage);
 }
-async function i18nStringComponent(element, id, onLanguageChange) {
-    // @ts-ignore
-    element.innerText = i18n.default[id].cn;
+export async function i18nStringComponent(element, stringID, onLanguageChange) {
+    element.innerText = i18n.default[stringID].cn;
     while (true) {
-        console.log("wait for lang change", id, element);
+        // console.log("wait for lang change", stringID, element);
         let lang = await onLanguageChange.pop();
-        console.log("on lang change", lang);
-        element.innerText = i18n.default[id][lang];
+        // console.log("on lang change", lang);
+        element.innerText = i18n.default[stringID][lang];
     }
+}
+export function i18nString(stringID, onLanguageChange) {
+    let lang = "cn";
+    (async () => {
+        while (true) {
+            console.log("wait for lang change", stringID);
+            lang = await onLanguageChange.pop();
+            console.log("on lang change", lang);
+        }
+    })();
+    return {
+        toString() {
+            return i18n.default[stringID][lang];
+        },
+    };
 }
 //# sourceMappingURL=components.js.map

@@ -2,7 +2,7 @@ clean:
 	rm -rf dist
 
 fmt:
-	deno fmt src/*.ts
+	deno fmt src/
 
 watch:
 	$$(npm bin)/tsc -w
