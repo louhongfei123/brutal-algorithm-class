@@ -1,3 +1,5 @@
+import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
+
 export type Language = "cn" | "en";
 
 // https://github.com/microsoft/TypeScript/issues/24220
@@ -53,7 +55,7 @@ let words: { [id: string]: LanguageMap } = {
 export async function i18nStringComponent(
   element: HTMLElement,
   stringID: string,
-  onLanguageChange: Channel<i18n.Language>,
+  onLanguageChange: csp.Channel<Language>,
 ) {
   element.innerText = words[stringID].cn;
   while (true) {
@@ -66,9 +68,9 @@ export async function i18nStringComponent(
 
 export function i18nString(
   stringID: string,
-  onLanguageChange: Channel<i18n.Language>,
+  onLanguageChange: csp.Channel<Language>,
 ) {
-  let lang: i18n.Language = "cn";
+  let lang: Language = "cn";
   (async () => {
     while (true) {
       console.log("wait for lang change", stringID);
@@ -82,4 +84,3 @@ export function i18nString(
     },
   };
 }
-

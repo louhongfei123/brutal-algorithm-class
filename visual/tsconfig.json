@@ -4,7 +4,13 @@
         "rootDir": "src",
         "outDir": "dist",
         "sourceMap": true,
-        "allowJs": true
+        "allowJs": true,
+        "strict": false,
+        "lib": [
+            "DOM",
+            "ES2015",
+            "ES2018"
+        ]
     },
     "exclude": [
         "src/server.ts"

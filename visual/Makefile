@@ -8,7 +8,8 @@ watch:
 	$$(npm bin)/tsc -w
 
 build: clean fmt
-	$$(npm bin)/tsc
+	mkdir dist
+	deno bundle -c tsconfig.json src/main.ts > dist/bundle.js
 	find ./dist -name '*.js' -exec sed -i "s/\.ts/\.js/g" {} +
 
 serve:

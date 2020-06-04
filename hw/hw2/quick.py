@@ -1,5 +1,6 @@
 from random import randint
 from time import time
+from heapq import heapify
 
 def partition(arr, low, high):
     i = (low-1)         # index of smaller element
@@ -17,6 +18,7 @@ def partition(arr, low, high):
 # 快排实现摘抄自 https://www.geeksforgeeks.org/python-program-for-quicksort/
 # 但是，将递归改为循环，不然在几千个数的时候就会爆栈。
 def quickSort(arr, low, high):
+    heapify(arr)
     call_stack = [(arr, low, high)]
     while call_stack:
         arr, low, high = call_stack.pop()
