@@ -602,8 +602,9 @@ System.register(
         while (true) {
           console.log("wait for lang change xxx");
           let lang = await listen.pop();
+          await csp.sleep(2000);
           button.textContent = currentString.toString();
-          console.log("on lang change", lang);
+          console.log("on lang change", lang, currentString.toString());
         }
       })();
       // Input
