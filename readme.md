@@ -75,10 +75,11 @@ Let's plant trees!
 
 ## 第三周
 ### 第 7 课
-- 平衡的二叉树
-- AVL树
+- 第二次作业评讲
 
 ### 第 8 课
+- 平衡的二叉树
+- AVL树
 - 堆排序 Heap Sort
 - 优先级队列 Priority Queue
 
