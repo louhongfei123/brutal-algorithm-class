@@ -9,11 +9,14 @@ watch:
 
 build: clean fmt
 	mkdir dist
-	deno bundle -c tsconfig.json src/main.ts > dist/bundle.js
+	deno bundle -c src/tsconfig.json src/main.ts > dist/bundle.js
 	find ./dist -name '*.js' -exec sed -i "s/\.ts/\.js/g" {} +
 
 serve:
 	$$(npm bin)/http-server
 
-game: fmt
-	deno run src/game.ts
+fmt-game:
+	deno fmt game/
+
+game: fmt-game
+	deno run game/game.ts

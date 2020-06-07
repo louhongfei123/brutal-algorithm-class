@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "target": "ES2018",
-        "rootDir": "src",
         "outDir": "dist",
         "sourceMap": true,
         "allowJs": true,
