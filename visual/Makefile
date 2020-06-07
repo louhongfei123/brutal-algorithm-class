@@ -14,3 +14,6 @@ build: clean fmt
 
 serve:
 	$$(npm bin)/http-server
+
+game: fmt
+	deno run src/game.ts

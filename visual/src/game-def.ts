@@ -1,103 +1,128 @@
-
-// import { readLines } from "https://deno.land/std/io/bufio.ts";
+import { readLines } from "https://deno.land/std/io/bufio.ts";
+import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
 
 export const log = console.log;
 
-export class Action {}
+export interface Action {
+  from: Unit;
+  to: Unit;
+  card: Card;
+}
 
-export class Unit {
-    constructor(
-        public name: string,
-        public health: number,
-        public cards: Card[]
-    ) {}
+class Unit {
+  constructor(
+    public name: string,
+    public health: number,
+    public cards: Card[],
+  ) {}
 
-    getAction(): Action {
-        throw new Error('Not Implemented');
-        // log(`getAction is called on ${this.name}`);
-        // return new Action();
-    }
+  async getAction(combatState: CombatState): Promise<Action> {
+    throw new Error("Not Implemented");
+  }
+}
+
+interface CombatState {
+  opponent: Unit;
 }
 
 export class MainCharactor extends Unit {
-
-    getAction(): Action {
-        log(`getAction is called on ${this.name}`);
-        return new Action();
+  async getAction(combatState: CombatState): Promise<Action> {
+    // log(`getAction is called on ${this.name}`);
+    log(`What is your action?`);
+    for (const [i, card] of Object.entries(this.cards)) {
+      log(`${i}. ${card.name}`);
     }
+    const choice = await getChoiceFromUser();
+    return {
+      from: this,
+      to: combatState.opponent,
+      card: this.cards[choice],
+      // return new Action();
+    };
+  }
+}
 
+async function getChoiceFromUser(): Promise<number> {
+  for await (const line of readLines(Deno.stdin)) {
+    return Number(line);
+  }
+  return NaN;
+}
+
+export class AIUnit extends Unit {
+  async getAction(combatState: CombatState): Promise<Action> {
+    return {
+      from: this,
+      to: combatState.opponent,
+      card: this.cards[0],
+    };
+  }
 }
 
 // class Card {
 //     constructor(
-//         public 
+//         public
 //     ){}
 // }
 
 export interface Card {
-    // An effect method takes an an unit and produce a new state of the unit.
-    name: string
-    effect(input: Unit): Unit
+  // An effect method takes an an unit and produce a new state of the unit.
+  name: string;
+  effect(input: Unit): Unit;
 }
 
 export class Attack implements Card {
-    name = Attack.name;
-    constructor(public owner: Unit) {}
-    effect(input: Unit): Unit {
-        log(`${this.owner} played ${this.name} against ${input}`);
-        input.health -= 10;
-        return input;
-    }
+  name = Attack.name;
+  constructor() {}
+  effect(input: Unit): Unit {
+    input.health -= 10;
+    return input;
+  }
 }
 
-// function choices(): string {
-//     return `A. 攻击
-// B. 防御`
-// }
-
-// function readInput(input: string) {
-//     if(input === 'A') {
-//         robber.health -= 10;
-//         log(`强盗剩余 ${robber.health} 生命值`);
-//     } else if (input === 'B') {
-
-//     } else {
-//         log('错误选项')
-//     }
-// }
-
-// function robberTurn() {
-//     mainC.health -= robber.attack;
-//     log(`强盗攻击了你，损失 ${robber.attack} 点生命`)
-//     log(`剩余${mainC.health} 点生命`)
-// }
-
-// function checkGameWinState() {
-//     return robber.health <= 0;
-// }
-
 export class Combat {
-    
-    unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
-    
-    constructor(
-        public participantA: Unit,
-        public participantB: Unit
-    ) {}
+  unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
 
-    getUnitOfThisTurn(): Unit {
-        if(this.unitOfThisTurn === this.participantA) {
-            this.unitOfThisTurn = this.participantB;
-            return this.participantA;
-        } else {
-            this.unitOfThisTurn = this.participantA;
-            return this.participantB;
-        }
-    }
+  constructor(
+    public participantA: Unit,
+    public participantB: Unit,
+  ) {}
 
-    begin() {
-        const unit = this.getUnitOfThisTurn();
-        const action = unit.getAction();
-        // todo: apply this action
+  getUnitOfThisTurn(): Unit {
+    if (this.unitOfThisTurn === this.participantA) {
+      this.unitOfThisTurn = this.participantB;
+      return this.participantA;
+    } else {
+      this.unitOfThisTurn = this.participantA;
+      return this.participantB;
     }
+  }
+
+  getOpponent(): Unit {
+    if (this.unitOfThisTurn === this.participantA) {
+      return this.participantB;
+    } else {
+      return this.participantA;
+    }
+  }
+
+  done() {
+    return this.participantA.health <= 0 || this.participantB.health <= 0;
+  }
+
+  async begin() {
+    while (!this.done()) {
+      const unit = this.getUnitOfThisTurn();
+      log(`===================`);
+      log(`${unit.name}'s turn`);
+      const action = await unit.getAction({
+        opponent: this.getOpponent(),
+      });
+      log(`${unit.name} chose ${action}`);
+      log(`-------------------`);
+      log();
+      await csp.sleep(700);
+    }
+    // todo: apply this action
+  }
 }
