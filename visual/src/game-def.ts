@@ -1,7 +1,10 @@
 import { readLines } from "https://deno.land/std/io/bufio.ts";
 import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
 
-export const log = console.log;
+export const log = async function (...args: string[]) {
+  await csp.sleep(333);
+  console.log(...args);
+};
 
 export interface Action {
   from: Unit;
@@ -27,12 +30,23 @@ interface CombatState {
 
 export class MainCharactor extends Unit {
   async getAction(combatState: CombatState): Promise<Action> {
-    // log(`getAction is called on ${this.name}`);
-    log(`What is your action?`);
-    for (const [i, card] of Object.entries(this.cards)) {
-      log(`${i}. ${card.name}`);
-    }
-    const choice = await getChoiceFromUser();
+    const choice = await (async () => {
+      while (true) {
+        await log(`Please choose 1 card from below`);
+        for (const [i, card] of Object.entries(this.cards)) {
+          log(`${i}. ${card.name}`);
+        }
+        const choice = await getChoiceFromUser();
+        if (!(choice in this.cards)) {
+          await log(`${choice} is an invalid choice, please choose again`);
+          await log();
+        } else {
+          return choice;
+        }
+      }
+    })();
+
+    await csp.sleep(500);
     return {
       from: this,
       to: combatState.opponent,
@@ -90,10 +104,8 @@ export class Combat {
 
   getUnitOfThisTurn(): Unit {
     if (this.unitOfThisTurn === this.participantA) {
-      this.unitOfThisTurn = this.participantB;
       return this.participantA;
     } else {
-      this.unitOfThisTurn = this.participantA;
       return this.participantB;
     }
   }
@@ -106,23 +118,49 @@ export class Combat {
     }
   }
 
-  done() {
-    return this.participantA.health <= 0 || this.participantB.health <= 0;
+  changeTurn() {
+    if (this.unitOfThisTurn === this.participantA) {
+      this.unitOfThisTurn = this.participantB;
+    } else {
+      this.unitOfThisTurn = this.participantA;
+    }
+  }
+
+  hasWinner(): Unit | undefined {
+    if (this.participantA.health <= 0) {
+      return this.participantB;
+    } else if (this.participantB.health <= 0) {
+      return this.participantA;
+    } else {
+      return undefined;
+    }
   }
 
   async begin() {
-    while (!this.done()) {
+    let winner = undefined;
+    while (winner === undefined) {
       const unit = this.getUnitOfThisTurn();
-      log(`===================`);
-      log(`${unit.name}'s turn`);
+      await log(`===================`);
+      await log(`${unit.name}'s turn`);
       const action = await unit.getAction({
         opponent: this.getOpponent(),
       });
-      log(`${unit.name} chose ${action}`);
-      log(`-------------------`);
-      log();
+      await log();
+
+      await log(
+        `${unit.name} used 【${action.card.name}】 against ${action.to.name}`,
+      );
+      action.card.effect(action.to);
+      await log(
+        `${this.getOpponent().name} has ${this.getOpponent().health} health left`,
+      );
+      await log(`-------------------`);
+      await log();
       await csp.sleep(700);
+      this.changeTurn();
+      winner = this.hasWinner();
     }
     // todo: apply this action
+    log(`${winner.name} is the Winner!`);
   }
 }
