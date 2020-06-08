@@ -57,9 +57,15 @@ export class Combat {
       await log(
         `${unit.name} used 【${action.card.name}】 against ${action.to.name}`,
       );
-      action.card.effect(action.to);
+      //   action.to.cards.executed.push(action.card);
+      const effect = action.card.effect(action.to);
+      action.to.cardEffects.push(effect);
       await log(
-        `${action.to.name} has ${action.to.getHealth()} health left`,
+        `${action.card.name}: ${JSON.stringify(action.card.effect(action.to))}`,
+      );
+      //   const unitStatusDelta = action.card.effect(action.to);
+      await log(
+        `${action.to.name} has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`,
       );
       await log("-------------------\n\n\n");
 
