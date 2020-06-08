@@ -35,9 +35,9 @@ export class Combat {
   }
 
   hasWinner(): Unit | undefined {
-    if (this.participantA.health <= 0) {
+    if (this.participantA.getHealth() <= 0) {
       return this.participantB;
-    } else if (this.participantB.health <= 0) {
+    } else if (this.participantB.getHealth() <= 0) {
       return this.participantA;
     } else {
       return undefined;
@@ -49,24 +49,23 @@ export class Combat {
     while (winner === undefined) {
       const unit = this.getUnitOfThisTurn();
       await log(`===================`);
-      await log(`${unit.name}'s turn`);
+      await log(`${unit.name}'s turn`, "\n");
       const action = await unit.getAction({
         opponent: this.getOpponent(),
       });
-      await log();
 
       await log(
         `${unit.name} used 【${action.card.name}】 against ${action.to.name}`,
       );
       action.card.effect(action.to);
       await log(
-        `${this.getOpponent().name} has ${this.getOpponent().health} health left`,
+        `${action.to.name} has ${action.to.getHealth()} health left`,
       );
-      await log(`-------------------`);
-      await log();
-      await csp.sleep(700);
+      await log("-------------------\n\n\n");
+
       this.changeTurn();
       winner = this.hasWinner();
+      await csp.sleep(233);
     }
     // todo: apply this action
     log(`${winner.name} is the Winner!`);

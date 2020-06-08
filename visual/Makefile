@@ -20,3 +20,7 @@ fmt-game:
 
 game: fmt-game
 	deno run game/game.ts
+
+in = ./game
+lc:
+	find $(in) -name '*.*' | xargs wc -l | sort -nr

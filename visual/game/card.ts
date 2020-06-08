@@ -1,21 +1,70 @@
-import { Card, Unit } from "./interfaces.ts";
+import {
+  Card,
+  Unit,
+  UnitStateDelta,
+  EquippmentCard,
+  CardCategory,
+} from "./interfaces.ts";
 
-export class Attack implements Card {
-  name = Attack.name;
+export class Attack1 implements Card {
+  name = Attack1.name;
+  kind = CardCategory.NormalCard;
   constructor() {}
-  effect(input: Unit): Unit {
-    // todo: what is the best way to do immutable in JS?
-    input.health -= 10;
-    return input;
+  effect(input: Unit): UnitStateDelta {
+    return {
+      health: -1,
+    };
+  }
+}
+
+export class Attack2 implements Card {
+  name = Attack2.name;
+  kind = CardCategory.NormalCard;
+  constructor() {}
+  effect(input: Unit): UnitStateDelta {
+    return {
+      health: -2,
+    };
+  }
+}
+
+export class Attack3 implements Card {
+  name = Attack2.name;
+  kind = CardCategory.NormalCard;
+  constructor() {}
+  effect(input: Unit): UnitStateDelta {
+    return {
+      health: -2,
+    };
   }
 }
 
 export class Heal implements Card {
+  kind = CardCategory.NormalCard;
   name = Heal.name;
+  health = 5;
   constructor() {}
-  // todo: when choose heal, should ask the user to select the target instead of applying to the opponent directly
-  effect(input: Unit): Unit {
-    input.health += 5;
-    return input;
+  effect(input: Unit): UnitStateDelta {
+    let health = this.health;
+    if (health > input.getHealthLimit()) {
+      health = input.getHealthLimit();
+    }
+    return {
+      health: health,
+    };
+  }
+}
+
+export class Health extends EquippmentCard {
+  name = Health.name;
+  health = 6;
+  constructor() {
+    super();
+  }
+  effect(input: Unit): UnitStateDelta {
+    return {
+      health: this.health,
+      healthLimit: this.health,
+    };
   }
 }
