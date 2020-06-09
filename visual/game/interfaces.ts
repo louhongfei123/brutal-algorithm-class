@@ -132,3 +132,16 @@ export class Unit {
     return this.getHealth() <= 0;
   }
 }
+
+/*
+
+todos
+
+I probably need a deque implementation that represents a deck of cards 
+that can insert and remove cards from/to top, bottom, and random middle place of the deque.
+
+Probably time to write some reproducible tests. Currently there are 488 lines of code.
+Let's see how it goes. If the code starts to not able to be fit in my head at once,
+time to write test code.
+
+*/

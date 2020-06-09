@@ -102,7 +102,6 @@ export class Combat {
       winner = this.hasWinner();
       await csp.sleep(233);
     }
-    // todo: apply this action
     log(`${winner.name} is the Winner!`);
 
     this.loot(winner, this.getLooser());
