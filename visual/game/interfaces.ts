@@ -3,11 +3,19 @@ export enum CardCategory {
   EquippmentCard = "EquippmentCard",
 }
 
+export interface EffectArguments {
+  // The unit which played this card
+  from: Unit;
+  // The unit which was played against with this card
+  to: Unit;
+}
+
 export interface Card {
   // kind is useful for both TSC checking and for JSON serialization.
   kind: CardCategory;
   name: string;
-  effect(input: Unit): CardEffect;
+  desp?: string;
+  effect(input: EffectArguments): CardEffect;
 }
 
 // A difference vector that represents the current state of the unit.
@@ -25,12 +33,12 @@ export interface NormalCard extends Card {
 export abstract class EquippmentCard implements Card {
   kind = CardCategory.EquippmentCard;
   name = "";
-  abstract effect(input: Unit): CardEffect;
+  abstract effect(input: EffectArguments): CardEffect;
 }
 
-export interface Action {
-  from: Unit;
-  to: Unit;
+export interface Action extends EffectArguments {
+  //   from: Unit;
+  //   to: Unit;
   card: Card;
 }
 
@@ -41,22 +49,25 @@ export interface CombatState {
 export interface CardInit {
   // 手牌
   hand: Card[];
-  // 牌堆
-  deck: Card[];
+  // 抽牌堆
+  drawPile: Card[];
+  // 弃牌堆
+  discardPile: Card[];
   // 已装备的牌
   equipped: EquippmentCard[];
 }
 
 export class Unit {
-  protected health = 0;
-  protected healthLimit = 0;
   public cardEffects: CardEffect[] = [];
   constructor(
     public name: string,
     public cards: CardInit,
   ) {
     for (let card of cards.equipped) {
-      const effect = card.effect(this);
+      const effect = card.effect({
+        from: this,
+        to: this,
+      });
       this.cardEffects.push(effect);
     }
   }

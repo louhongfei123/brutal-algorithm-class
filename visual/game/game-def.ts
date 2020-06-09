@@ -44,31 +44,44 @@ export class Combat {
     }
   }
 
+  async takeTurn(unit: Unit) {
+    const [effect, action] = await (async () => {
+      while (true) {
+        const action = await unit.getAction({
+          opponent: this.getOpponent(),
+        });
+        await log(
+          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`,
+        );
+
+        try {
+          return [action.card.effect(action), action];
+        } catch (e) {
+          await log(e);
+          continue;
+        }
+      }
+    })();
+
+    await log(
+      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`,
+    );
+    action.to.cardEffects.push(effect);
+    action.from.cards.discardPile.push(action.card);
+    await log(
+      `${action.to.name} has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`,
+    );
+    await log("-------------------\n\n\n");
+  }
+
   async begin() {
     let winner = undefined;
     while (winner === undefined) {
       const unit = this.getUnitOfThisTurn();
       await log(`===================`);
       await log(`${unit.name}'s turn`, "\n");
-      const action = await unit.getAction({
-        opponent: this.getOpponent(),
-      });
-
-      await log(
-        `${unit.name} used 【${action.card.name}】 against ${action.to.name}`,
-      );
-      //   action.to.cards.executed.push(action.card);
-      const effect = action.card.effect(action.to);
-      action.to.cardEffects.push(effect);
-      await log(
-        `${action.card.name}: ${JSON.stringify(action.card.effect(action.to))}`,
-      );
+      await this.takeTurn(unit);
       //   const unitStatusDelta = action.card.effect(action.to);
-      await log(
-        `${action.to.name} has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`,
-      );
-      await log("-------------------\n\n\n");
-
       this.changeTurn();
       winner = this.hasWinner();
       await csp.sleep(233);

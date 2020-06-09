@@ -8,7 +8,8 @@ const robber = new AIUnit("强盗", {
     new card.Attack3(),
     new card.Heal(),
   ],
-  deck: [],
+  drawPile: [],
+  discardPile: [],
   equipped: [
     new card.Health(),
   ],
@@ -17,9 +18,11 @@ const mainC = new MainCharactor("主角", {
   hand: [
     new card.Attack1(),
     new card.Attack2(),
+    new card.FollowUpAttack(),
     new card.Heal(),
   ],
-  deck: [],
+  drawPile: [],
+  discardPile: [],
   equipped: [
     new card.Health(),
   ],
