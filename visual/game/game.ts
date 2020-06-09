@@ -3,31 +3,40 @@ import * as card from "./card.ts";
 import { Combat } from "./game-def.ts";
 import { log } from "./logger.ts";
 
-const robber = new AIUnit("强盗", {
-  hand: [
-    new card.Attack3(),
-    new card.Heal(),
-  ],
-  drawPile: [],
-  discardPile: [],
-  equipped: [
-    new card.Health(),
-  ],
-});
-const mainC = new MainCharactor("主角", {
-  hand: [
-    new card.Attack1(),
+const robber1 = new AIUnit("强盗1", {
+  drawPile: [
     new card.Attack2(),
-    new card.FollowUpAttack(),
-    new card.Heal(),
+    new card.Attack2(),
   ],
-  drawPile: [],
-  discardPile: [],
   equipped: [
-    new card.Health(),
+    new card.Health(1),
   ],
 });
-const combat = new Combat(mainC, robber);
+const robber2 = new AIUnit("强盗2", {
+  drawPile: [
+    new card.Attack3(),
+    new card.Attack3(),
+    new card.FollowUpAttack(),
+  ],
+  equipped: [
+    new card.Health(5),
+  ],
+});
 
+const mainC = new MainCharactor("主角", {
+  drawPile: [
+    new card.Attack1(),
+    new card.Attack1(),
+    new card.Heal(),
+  ],
+  equipped: [
+    new card.Health(5),
+  ],
+});
+
+// Start the campagin
 log("迎面一个强盗朝你走来，你要怎么做？");
-combat.begin();
+const combat1 = new Combat(mainC, robber1);
+await combat1.begin();
+const combat2 = new Combat(mainC, robber2);
+await combat2.begin();

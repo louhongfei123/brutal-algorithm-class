@@ -15,10 +15,10 @@ build: clean fmt
 serve:
 	$$(npm bin)/http-server
 
-fmt-game:
+fg:
 	deno fmt game/
 
-game: fmt-game
+game: fg
 	deno run game/game.ts
 
 in = ./game

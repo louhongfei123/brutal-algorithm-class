@@ -7,6 +7,9 @@ import {
   EffectArguments,
 } from "./interfaces.ts";
 
+//////////////////
+// Attack Cards //
+//////////////////
 export class Attack1 implements Card {
   name = Attack1.name;
   kind = CardCategory.NormalCard;
@@ -45,19 +48,29 @@ export class Attack3 implements Card {
 
 export class FollowUpAttack implements Card {
   name = FollowUpAttack.name;
-  desp = "If the previous used/discard card is an attack, duplicate its effect";
+  desp =
+    "If the previous used/discard card is an attack, duplicate its effect and produce additional damage";
   kind = CardCategory.NormalCard;
   constructor() {}
   effect(input: EffectArguments): CardEffect {
     if (input.from.cards.discardPile.length === 0) {
-      return { by: this };
+      throw new Error(
+        "FoolowUpAttack: There is no card on the top of discard pile",
+      );
     }
-    console.log(JSON.stringify(input.from.cards.discardPile));
-    return input.from.cards.discardPile[input.from.cards.discardPile.length - 1]
+    // console.log(JSON.stringify(input.from.cards.discardPile));
+    let eff = input.from.cards
+      .discardPile[input.from.cards.discardPile.length - 1]
       .effect(input);
+    // @ts-ignore
+    eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
+    return eff;
   }
 }
 
+///////////////////
+// Healing Cards //
+///////////////////
 export class Heal implements Card {
   kind = CardCategory.NormalCard;
   name = Heal.name;
@@ -77,10 +90,12 @@ export class Heal implements Card {
   }
 }
 
+//////////////////////
+// Equippment Cards //
+//////////////////////
 export class Health extends EquippmentCard {
   name = Health.name;
-  health = 5;
-  constructor() {
+  constructor(public health: number) {
     super();
   }
   effect(input: EffectArguments): CardEffect {

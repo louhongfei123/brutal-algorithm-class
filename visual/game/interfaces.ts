@@ -1,3 +1,5 @@
+import * as math from "./math.ts";
+
 export enum CardCategory {
   NormalCard = "NormalCard",
   EquippmentCard = "EquippmentCard",
@@ -18,7 +20,7 @@ export interface Card {
   effect(input: EffectArguments): CardEffect;
 }
 
-// A difference vector that represents the current state of the unit.
+// A difference vector that represents the change of state of the unit.
 export interface CardEffect {
   by: Card;
   health?: number;
@@ -47,22 +49,34 @@ export interface CombatState {
 }
 
 export interface CardInit {
-  // 手牌
-  hand: Card[];
   // 抽牌堆
   drawPile: Card[];
-  // 弃牌堆
-  discardPile: Card[];
   // 已装备的牌
   equipped: EquippmentCard[];
 }
 
+export interface CardsOfUnit extends CardInit {
+  // 手牌
+  hand: Card[];
+  // 弃牌堆
+  discardPile: Card[];
+}
+
 export class Unit {
   public cardEffects: CardEffect[] = [];
+  public cards: CardsOfUnit = {
+    hand: [],
+    equipped: [],
+    drawPile: [],
+    discardPile: [],
+  };
+
   constructor(
     public name: string,
-    public cards: CardInit,
+    cards: CardInit,
   ) {
+    this.cards.equipped = cards.equipped;
+    this.cards.drawPile = cards.drawPile;
     for (let card of cards.equipped) {
       const effect = card.effect({
         from: this,
@@ -71,9 +85,32 @@ export class Unit {
       this.cardEffects.push(effect);
     }
   }
+
   async getAction(combatState: CombatState): Promise<Action> {
     throw new Error("Not Implemented");
   }
+
+  // Draw n cards from draw pile to hand.
+  // It turns the number of card that failed to be drawn.
+  draw(n: number): number {
+    for (let i = 0; i < n; i++) {
+      let top = this.cards.drawPile.pop();
+      if (!top) {
+        return n - i;
+      }
+      this.cards.hand.push(top);
+    }
+    return 0;
+  }
+
+  // Move all cards in the discard pile to the draw pile and shuffle it.
+  shuffle() {
+    console.log(`${this.name} shuffles`);
+    this.cards.drawPile = this.cards.discardPile;
+    this.cards.discardPile = [];
+    math.shuffle(this.cards.drawPile);
+  }
+
   getHealth(): number {
     const health = this.cardEffects.map(
       (element) => element.health || 0,

@@ -44,9 +44,23 @@ export class Combat {
     }
   }
 
+  getLooser(): Unit {
+    if (this.hasWinner() === this.participantA) {
+      return this.participantB;
+    } else {
+      return this.participantA;
+    }
+  }
+
   async takeTurn(unit: Unit) {
-    const [effect, action] = await (async () => {
+    const { effect, action } = await (async () => {
       while (true) {
+        if (unit.cards.drawPile.length === 0) {
+          unit.shuffle();
+        }
+        console.log(JSON.stringify(unit, null, 1));
+        const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
+        console.log("failedToDraw", failedToDraw);
         const action = await unit.getAction({
           opponent: this.getOpponent(),
         });
@@ -55,9 +69,10 @@ export class Combat {
         );
 
         try {
-          return [action.card.effect(action), action];
+          return { effect: action.card.effect(action), action };
         } catch (e) {
-          await log(e);
+          await log(e.message);
+          await log("please choose again\n");
           continue;
         }
       }
@@ -76,6 +91,7 @@ export class Combat {
 
   async begin() {
     let winner = undefined;
+    let looser = undefined;
     while (winner === undefined) {
       const unit = this.getUnitOfThisTurn();
       await log(`===================`);
@@ -88,5 +104,11 @@ export class Combat {
     }
     // todo: apply this action
     log(`${winner.name} is the Winner!`);
+
+    this.loot(winner, this.getLooser());
+  }
+
+  // Winner can loot 1 card from the looser
+  async loot(winner: Unit, looser: Unit) {
   }
 }
