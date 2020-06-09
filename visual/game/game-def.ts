@@ -59,9 +59,11 @@ export class Combat {
           unit.shuffle();
         }
         console.log(JSON.stringify(unit, null, 1));
+        console.log(unit.cards.hand);
         const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
         console.log("failedToDraw", failedToDraw);
-        const action = await unit.getAction({
+        console.log(unit.cards.hand);
+        const action = await unit.takeAction({
           opponent: this.getOpponent(),
         });
         await log(
@@ -71,10 +73,14 @@ export class Combat {
         try {
           return { effect: action.card.effect(action), action };
         } catch (e) {
+          // This is not a valid action.
           await log(e.message);
           await log("please choose again\n");
           continue;
         }
+        // This is a valid action, the card has been exercised.
+        // Move the card from hand to discard pile.
+        unit.moveToDiscardFromHand(action.card);    // todo: something wrong here
       }
     })();
 

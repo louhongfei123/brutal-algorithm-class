@@ -86,7 +86,7 @@ export class Unit {
     }
   }
 
-  async getAction(combatState: CombatState): Promise<Action> {
+  async takeAction(combatState: CombatState): Promise<Action> {
     throw new Error("Not Implemented");
   }
 
@@ -109,6 +109,21 @@ export class Unit {
     this.cards.drawPile = this.cards.discardPile;
     this.cards.discardPile = [];
     math.shuffle(this.cards.drawPile);
+  }
+
+  moveToDiscardFromHand(card: Card) {
+    for (let [i, c] of this.cards.hand.entries()) {
+      if (c === card) {
+        const [card2, newHand] = math.popFrom(this.cards.hand, i);
+        if (card2 !== card) {
+          throw new Error("unreachable");
+        }
+        this.cards.hand = newHand;
+        this.cards.discardPile.push(card2);
+        return;
+      }
+    }
+    throw new Error(`card: ${card} does not exist in hand`);
   }
 
   getHealth(): number {

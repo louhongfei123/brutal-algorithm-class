@@ -4,7 +4,7 @@ import { Unit, CombatState, Action } from "./interfaces.ts";
 import { readLines } from "https://deno.land/std/io/bufio.ts";
 
 export class MainCharactor extends Unit {
-  async getAction(combatState: CombatState): Promise<Action> {
+  async takeAction(combatState: CombatState): Promise<Action> {
     const choice = await (async () => {
       while (true) {
         await log(`Please choose 1 card from below`);
@@ -59,7 +59,7 @@ async function getChoiceFromUser(): Promise<string> {
 }
 
 export class AIUnit extends Unit {
-  async getAction(combatState: CombatState): Promise<Action> {
+  async takeAction(combatState: CombatState): Promise<Action> {
     return {
       from: this,
       to: combatState.opponent,
