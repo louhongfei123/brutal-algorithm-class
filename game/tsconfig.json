@@ -1,8 +1,5 @@
 {
     "compilerOptions": {
-        "target": "ES2018",
-        "outDir": "dist",
-        "sourceMap": true,
         "allowJs": true,
         "strictBindCallApply": true,
         "strictFunctionTypes": true,

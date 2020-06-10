@@ -1,10 +1,8 @@
-import { AIUnit, MainCharactor } from "./unit.ts";
-import * as card from "./card.ts";
-import { Combat } from "./game-def.ts";
-import { log } from "./logger.ts";
-import { PIXI } from "./pixi.js";
-
-console.log(PIXI);
+import { AIUnit, MainCharactor } from "../unit.ts";
+import * as card from "../card.ts";
+import { Combat } from "../game-def.ts";
+import { log } from "../logger.ts";
+import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
 
 const robber1 = new AIUnit("强盗1", {
   drawPile: [
@@ -35,7 +33,7 @@ const mainC = new MainCharactor("主角", {
   equipped: [
     new card.Health(5),
   ],
-});
+}, new csp.UnbufferredChannel<string>());
 
 // Start the campagin
 log("迎面一个强盗朝你走来，你要怎么做？");
