@@ -3,33 +3,40 @@ import { log } from "./logger.ts";
 import { Unit, CardInit, CombatState, Action } from "./interfaces.ts";
 // import { readLines } from "https://deno.land/std/io/bufio.ts";
 
+export interface UserControlFunctions {
+  getChoiceFromUser(): Promise<string>;
+}
+
 export class MainCharactor extends Unit {
   constructor(
     public name: string,
     cards: CardInit,
     public choiceChan: csp.Channel<string>,
+    public userControlFunctions: UserControlFunctions,
   ) {
     super(name, cards);
   }
 
   async takeAction(combatState: CombatState): Promise<Action> {
-    const choice = await (async () => {
-      while (true) {
-        await log(`Please choose 1 card from below`);
-        for (const [i, card] of Object.entries(this.cards.hand)) {
-          await log(`${Number(i) + 1}. ${card.name}`);
-        }
-        const choice = await getChoiceFromUser(this.choiceChan);
-        if (!(Number(choice) - 1 in this.cards.hand)) {
-          await log(
-            `${choice} is an invalid choice, please choose again`,
-            "\n",
-          );
-        } else {
-          return choice;
-        }
-      }
-    })();
+    // const choice = await (async () => {
+    //   while (true) {
+    //     await log(`Please choose 1 card from below`);
+    //     for (const [i, card] of Object.entries(this.cards.hand)) {
+    //       await log(`${Number(i) + 1}. ${card.name}`);
+    //     }
+    //     const choice = await getChoiceFromUser(this.choiceChan);
+    //     if (!(Number(choice) - 1 in this.cards.hand)) {
+    //       await log(
+    //         `${choice} is an invalid choice, please choose again`,
+    //         "\n",
+    //       );
+    //     } else {
+    //       return choice;
+    //     }
+    //   }
+    // })();
+    const choice = await this.userControlFunctions.getChoiceFromUser();
+    console.debug("userControlFunctions.getChoiceFromUser", choice);
 
     const targetUnit = await (async () => {
       while (true) {

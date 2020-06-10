@@ -42417,31 +42417,33 @@ System.register(
         },
       ],
       execute: function () {
-        // import { readLines } from "https://deno.land/std/io/bufio.js";
         MainCharactor = class MainCharactor extends interfaces_ts_1.Unit {
-          constructor(name, cards, choiceChan) {
+          constructor(name, cards, choiceChan, userControlFunctions) {
             super(name, cards);
             this.name = name;
             this.choiceChan = choiceChan;
+            this.userControlFunctions = userControlFunctions;
           }
           async takeAction(combatState) {
-            const choice = await (async () => {
-              while (true) {
-                await logger_ts_1.log(`Please choose 1 card from below`);
-                for (const [i, card] of Object.entries(this.cards.hand)) {
-                  await logger_ts_1.log(`${Number(i) + 1}. ${card.name}`);
-                }
-                const choice = await getChoiceFromUser(this.choiceChan);
-                if (!(Number(choice) - 1 in this.cards.hand)) {
-                  await logger_ts_1.log(
-                    `${choice} is an invalid choice, please choose again`,
-                    "\n",
-                  );
-                } else {
-                  return choice;
-                }
-              }
-            })();
+            // const choice = await (async () => {
+            //   while (true) {
+            //     await log(`Please choose 1 card from below`);
+            //     for (const [i, card] of Object.entries(this.cards.hand)) {
+            //       await log(`${Number(i) + 1}. ${card.name}`);
+            //     }
+            //     const choice = await getChoiceFromUser(this.choiceChan);
+            //     if (!(Number(choice) - 1 in this.cards.hand)) {
+            //       await log(
+            //         `${choice} is an invalid choice, please choose again`,
+            //         "\n",
+            //       );
+            //     } else {
+            //       return choice;
+            //     }
+            //   }
+            // })();
+            const choice = await this.userControlFunctions.getChoiceFromUser();
+            console.debug("userControlFunctions.getChoiceFromUser", choice);
             const targetUnit = await (async () => {
               while (true) {
                 await logger_ts_1.log(`Please choose the target`);
@@ -42613,7 +42615,7 @@ System.register(
   },
 );
 System.register(
-  "file:///workspace/brutal-algorithm-class/game/src/game-def",
+  "file:///workspace/brutal-algorithm-class/game/src/combat",
   [
     "https://creatcodebuild.github.io/csp/dist/csp",
     "file:///workspace/brutal-algorithm-class/game/src/logger",
@@ -42749,84 +42751,19 @@ System.register(
   },
 );
 System.register(
-  "file:///workspace/brutal-algorithm-class/game/src/entry/index",
-  [
-    "file:///workspace/brutal-algorithm-class/game/src/libs/pixi",
-    "file:///workspace/brutal-algorithm-class/game/src/unit",
-    "file:///workspace/brutal-algorithm-class/game/src/card",
-    "file:///workspace/brutal-algorithm-class/game/src/game-def",
-    "file:///workspace/brutal-algorithm-class/game/src/logger",
-    "https://creatcodebuild.github.io/csp/dist/csp",
-  ],
+  "file:///workspace/brutal-algorithm-class/game/src/render/hand",
+  ["file:///workspace/brutal-algorithm-class/game/src/libs/pixi"],
   function (exports_9, context_9) {
     "use strict";
-    var pixi_js_1, unit_ts_1, card, game_def_ts_1, logger_ts_3, csp, type, app;
+    var pixi_js_1;
     var __moduleName = context_9 && context_9.id;
-    async function main() {
-      //   CardUI("攻击1");
-      //   CardUI("攻击2");
-      const robber1 = new unit_ts_1.AIUnit("强盗1", {
-        drawPile: [
-          new card.Attack2(),
-          new card.Attack2(),
-        ],
-        equipped: [
-          new card.Health(1),
-        ],
-      });
-      const robber2 = new unit_ts_1.AIUnit("强盗2", {
-        drawPile: [
-          new card.Attack3(),
-          new card.Attack3(),
-          new card.FollowUpAttack(),
-        ],
-        equipped: [
-          new card.Health(5),
-        ],
-      });
-      const mainC = new unit_ts_1.MainCharactor("主角", {
-        drawPile: [
-          new card.Attack1(),
-          new card.Attack1(),
-          new card.Heal(),
-        ],
-        equipped: [
-          new card.Health(5),
-        ],
-      }, new csp.UnbufferredChannel());
-      // Start the campagin
-      logger_ts_3.log("迎面一个强盗朝你走来，你要怎么做？");
-      const combat1 = new game_def_ts_1.Combat(mainC, robber1);
-      renderCom(combat1.onStateChange());
-      await combat1.begin();
-      const combat2 = new game_def_ts_1.Combat(mainC, robber2);
-      await combat2.begin();
-    }
-    async function renderCom(combatStateChange) {
-      while (true) {
-        // console.log("wait");
-        let combat = await combatStateChange.pop();
-        // console.log("done");
-        if (!combat) {
-          throw new Error("unreachable");
-        }
-        // Render player's hand cards
-        renderHand(combat.participantA.cards.hand);
-        // Render discard pile
-        let discardPile = combat.participantA.cards.discardPile;
-        for (let card of discardPile) {
-          CardUI(card.name, 550, 430);
-        }
-        // Render draw pile
-        // Render player
-        CardUI("You", 200, 300);
-        // Render enermy
-        CardUI("enermy", 800, 300);
-      }
-    }
     function renderHand(cards) {
+      // @ts-ignore
+      const container = new pixi_js_1.PIXI.Container();
+      container.sortableChildren = true;
       for (let [i, card] of cards.entries()) {
         let cardUI = CardUI(card.name, 400 + i * 128, 600);
+        const originalY = cardUI.position.y;
         // @ts-ignore
         cardUI.on("mouseover", function (e) {
           // @ts-ignore
@@ -42835,10 +42772,13 @@ System.register(
         // @ts-ignore
         cardUI.on("mouseout", function (e) {
           // @ts-ignore
-          cardUI.position.y += 40;
+          cardUI.position.y = originalY;
         });
+        container.addChild(cardUI);
       }
+      return container;
     }
+    exports_9("renderHand", renderHand);
     function CardUI(cardName, x, y) {
       // @ts-ignore
       let aCard = new pixi_js_1.PIXI.Container();
@@ -42869,7 +42809,8 @@ System.register(
       cardNameTexture.position.y = y;
       aCard.addChild(rectangle);
       aCard.addChild(cardNameTexture);
-      app.stage.addChild(aCard);
+      const originalX = aCard.position.x;
+      const originalY = aCard.position.y;
       var drag = false;
       createDragAndDropFor(aCard);
       // @ts-ignore
@@ -42878,9 +42819,18 @@ System.register(
         // @ts-ignore
         target.on("mousedown", function (e) {
           drag = target;
+          //   target.zIndex = 10;
+          target.parent.setChildIndex(
+            target,
+            target.parent.children.length - 1,
+          );
         });
         // @ts-ignore
         target.on("mouseup", function (e) {
+          // @ts-ignore
+          drag.position.x = originalX;
+          // @ts-ignore
+          drag.position.y = originalY;
           drag = false;
         });
         // @ts-ignore
@@ -42891,7 +42841,7 @@ System.register(
             // @ts-ignore
             drag.position.y += e.data.originalEvent.movementY;
             // @ts-ignore
-            console.log(drag.position);
+            // console.log(drag.position);
           }
         });
       }
@@ -42902,14 +42852,215 @@ System.register(
         function (pixi_js_1_1) {
           pixi_js_1 = pixi_js_1_1;
         },
+      ],
+      execute: function () {
+      },
+    };
+  },
+);
+System.register(
+  "file:///workspace/brutal-algorithm-class/game/src/render/unit",
+  ["file:///workspace/brutal-algorithm-class/game/src/libs/pixi"],
+  function (exports_10, context_10) {
+    "use strict";
+    var pixi_js_2;
+    var __moduleName = context_10 && context_10.id;
+    function renderUnit(unit, x, y) {
+      // @ts-ignore
+      let unitContainer = new pixi_js_2.PIXI.Container();
+      // @ts-ignore
+      let rectangle = new pixi_js_2.PIXI.Graphics();
+      rectangle.lineStyle(4, 0xFF3300, 1);
+      rectangle.beginFill(0x66CCFF);
+      rectangle.drawRect(x, y, 128, 192);
+      rectangle.endFill();
+      // @ts-ignore
+      let cardNameTexture = new pixi_js_2.PIXI.Text(
+        unit.name,
+        // @ts-ignore
+        new pixi_js_2.PIXI.TextStyle({
+          fontFamily: "Arial",
+          fontSize: 30,
+          fill: "white",
+          stroke: "#ff3300",
+          strokeThickness: 4,
+          dropShadow: true,
+          dropShadowColor: "#000000",
+          dropShadowBlur: 4,
+          dropShadowAngle: Math.PI / 6,
+          dropShadowDistance: 6,
+        }),
+      );
+      cardNameTexture.position.x = x;
+      cardNameTexture.position.y = y;
+      unitContainer.addChild(rectangle);
+      unitContainer.addChild(cardNameTexture);
+      const originalX = unitContainer.position.x;
+      const originalY = unitContainer.position.y;
+      return unitContainer;
+    }
+    exports_10("renderUnit", renderUnit);
+    return {
+      setters: [
+        function (pixi_js_2_1) {
+          pixi_js_2 = pixi_js_2_1;
+        },
+      ],
+      execute: function () {
+      },
+    };
+  },
+);
+System.register(
+  "file:///workspace/brutal-algorithm-class/game/src/entry/index",
+  [
+    "file:///workspace/brutal-algorithm-class/game/src/libs/pixi",
+    "file:///workspace/brutal-algorithm-class/game/src/unit",
+    "file:///workspace/brutal-algorithm-class/game/src/card",
+    "file:///workspace/brutal-algorithm-class/game/src/combat",
+    "file:///workspace/brutal-algorithm-class/game/src/logger",
+    "https://creatcodebuild.github.io/csp/dist/csp",
+    "file:///workspace/brutal-algorithm-class/game/src/render/hand",
+    "file:///workspace/brutal-algorithm-class/game/src/render/unit",
+  ],
+  function (exports_11, context_11) {
+    "use strict";
+    var pixi_js_3,
+      unit_ts_1,
+      card,
+      combat_ts_1,
+      logger_ts_3,
+      csp,
+      hand_ts_1,
+      unit_ts_2,
+      type,
+      Width,
+      Height,
+      app;
+    var __moduleName = context_11 && context_11.id;
+    async function main() {
+      //   CardUI("攻击1");
+      //   CardUI("攻击2");
+      const robber1 = new unit_ts_1.AIUnit("强盗1", {
+        drawPile: [
+          new card.Attack2(),
+          new card.Attack2(),
+        ],
+        equipped: [
+          new card.Health(1),
+        ],
+      });
+      const robber2 = new unit_ts_1.AIUnit("强盗2", {
+        drawPile: [
+          new card.Attack3(),
+          new card.Attack3(),
+          new card.FollowUpAttack(),
+        ],
+        equipped: [
+          new card.Health(5),
+        ],
+      });
+      const userCardSelection = new csp.UnbufferredChannel();
+      const userControlFunctions = {
+        getChoiceFromUser: async function () {
+          return userCardSelection.pop();
+        },
+      };
+      const mainC = new unit_ts_1.MainCharactor(
+        "主角",
+        {
+          drawPile: [
+            new card.Attack1(),
+            new card.Attack1(),
+            new card.Heal(),
+          ],
+          equipped: [
+            new card.Health(5),
+          ],
+        },
+        new csp.UnbufferredChannel(),
+        userControlFunctions,
+      );
+      // Start the campagin
+      logger_ts_3.log("迎面一个强盗朝你走来，你要怎么做？");
+      const combat1 = new combat_ts_1.Combat(mainC, robber1);
+      const combatRenderrer = renderCombat(combat1.onStateChange());
+      const combatState = combat1.begin();
+      await combatState;
+      console.debug("Combat is done!");
+      await combatRenderrer;
+      console.debug("combat renderer exits");
+      //   const combat2 = new Combat(mainC, robber2);
+      //   await combat2.begin();
+    }
+    async function renderCombat(combatStateChange) {
+      while (true) {
+        // console.log("wait");
+        let combat = await combatStateChange.pop();
+        // console.log("done");
+        if (!combat) {
+          throw new Error("unreachable");
+        }
+        // Render turn
+        const unitOfThisTurn = combat.getUnitOfThisTurn();
+        // @ts-ignore
+        let whosTurn = new pixi_js_3.PIXI.Text(
+          `${unitOfThisTurn.name}'s Turn`,
+          // @ts-ignore
+          new pixi_js_3.PIXI.TextStyle({
+            fontFamily: "Arial",
+            fontSize: 30,
+            fill: "white",
+            stroke: "#ff3300",
+            strokeThickness: 4,
+            dropShadow: true,
+            dropShadowColor: "#000000",
+            dropShadowBlur: 4,
+            dropShadowAngle: Math.PI / 6,
+            dropShadowDistance: 6,
+          }),
+        );
+        whosTurn.position.x = positionX(0.5, 100);
+        whosTurn.position.y = positionY(0.25, 100);
+        app.stage.addChild(whosTurn);
+        // Render discard pile
+        // let discardPile = combat.participantA.cards.discardPile;
+        // for (let card of discardPile) {
+        //   CardUI(card.name, 550, 430);
+        // }
+        // Render draw pile
+        // Render player
+        // CardUI("You", 200, 300);
+        const you = unit_ts_2.renderUnit(combat.participantA, 200, 300);
+        app.stage.addChild(you);
+        // Render enermy
+        const enermy = unit_ts_2.renderUnit(combat.participantB, 800, 300);
+        app.stage.addChild(enermy);
+        // Render player's hand cards
+        app.stage.addChild(
+          hand_ts_1.renderHand(combat.participantA.cards.hand),
+        );
+      }
+    }
+    function positionX(x, width) {
+      return Width * x - width / 2;
+    }
+    function positionY(y, height) {
+      return Height * y - height / 2;
+    }
+    return {
+      setters: [
+        function (pixi_js_3_1) {
+          pixi_js_3 = pixi_js_3_1;
+        },
         function (unit_ts_1_1) {
           unit_ts_1 = unit_ts_1_1;
         },
         function (card_1) {
           card = card_1;
         },
-        function (game_def_ts_1_1) {
-          game_def_ts_1 = game_def_ts_1_1;
+        function (combat_ts_1_1) {
+          combat_ts_1 = combat_ts_1_1;
         },
         function (logger_ts_3_1) {
           logger_ts_3 = logger_ts_3_1;
@@ -42917,21 +43068,29 @@ System.register(
         function (csp_4) {
           csp = csp_4;
         },
+        function (hand_ts_1_1) {
+          hand_ts_1 = hand_ts_1_1;
+        },
+        function (unit_ts_2_1) {
+          unit_ts_2 = unit_ts_2_1;
+        },
       ],
       execute: function () {
         type = "WebGL";
         // @ts-ignore
-        if (!pixi_js_1.PIXI.utils.isWebGLSupported()) {
+        if (!pixi_js_3.PIXI.utils.isWebGLSupported()) {
           type = "canvas";
         }
         // @ts-ignore
-        pixi_js_1.PIXI.utils.sayHello(type);
+        pixi_js_3.PIXI.utils.sayHello(type);
+        Width = 1280;
+        Height = 720;
         //Create a Pixi Application
         // @ts-ignore
         //Create a Pixi Application
-        app = new pixi_js_1.PIXI.Application({
-          width: 1280,
-          height: 720,
+        app = new pixi_js_3.PIXI.Application({
+          width: Width,
+          height: Height,
           antialias: true,
           transparent: false,
           resolution: 1,
