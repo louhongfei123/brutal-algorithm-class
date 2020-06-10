@@ -82,18 +82,27 @@ async function renderCom(combatStateChange: csp.Channel<Combat>) {
 
     // Render player's hand cards
     let handCards = combat.participantA.cards.hand;
-    for (let card of handCards) {
-      CardUI(card.name);
+    for (let [i, card] of handCards.entries()) {
+      CardUI(card.name, 400 + i * 128, 600);
     }
 
     // Render discard pile
+    let discardPile = combat.participantA.cards.discardPile;
+    for (let card of discardPile) {
+      CardUI(card.name, 550, 430);
+    }
 
     // Render draw pile
-    
+
+    // Render player
+    CardUI("You", 200, 300);
+
+    // Render enermy
+    CardUI("enermy", 800, 300);
   }
 }
 
-function CardUI(cardName: string) {
+function CardUI(cardName: string, x: number, y: number) {
   // @ts-ignore
   let aCard = new PIXI.Container();
 
@@ -101,7 +110,7 @@ function CardUI(cardName: string) {
   let rectangle = new PIXI.Graphics();
   rectangle.lineStyle(4, 0xFF3300, 1);
   rectangle.beginFill(0x66CCFF);
-  rectangle.drawRect(0, 0, 128, 192);
+  rectangle.drawRect(x, y, 128, 192);
   rectangle.endFill();
 
   // @ts-ignore
@@ -121,6 +130,8 @@ function CardUI(cardName: string) {
       dropShadowDistance: 6,
     }),
   );
+  cardNameTexture.position.x = x;
+  cardNameTexture.position.y = y;
 
   aCard.addChild(rectangle);
   aCard.addChild(cardNameTexture);
@@ -148,6 +159,8 @@ function CardUI(cardName: string) {
         drag.position.x += e.data.originalEvent.movementX;
         // @ts-ignore
         drag.position.y += e.data.originalEvent.movementY;
+        // @ts-ignore
+        console.log(drag.position);
       }
     });
   }
