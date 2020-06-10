@@ -9,7 +9,7 @@ watch:
 
 build: clean fmt
 	mkdir dist
-	deno bundle -c tsconfig.json src/entry/html.ts > dist/bundle.js
+	deno bundle -c tsconfig.json src/entry/html.ts > dist/html.js
 	cp src/entry/index.html dist/index.html
 	make rename-ts-to-js
 
@@ -17,7 +17,7 @@ rename-ts-to-js:
 	find ./dist -name '*.js' -exec sed -i "s/\.ts/\.js/g" {} +
 
 serve:
-	$$(npm bin)/http-server ./dist
+	$$(npm bin)/http-server
 
 game: fg
 	deno run game/game.ts
