@@ -17,7 +17,7 @@ rename-ts-to-js:
 	find ./dist -name '*.js' -exec sed -i "s/\.ts/\.js/g" {} +
 
 serve:
-	$$(npm bin)/http-server ./dist/index.html
+	$$(npm bin)/http-server ./dist
 
 game: fg
 	deno run game/game.ts
