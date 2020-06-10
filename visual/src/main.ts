@@ -12,6 +12,7 @@ import * as component from "./components.ts";
 import { DataSourceComponent } from "./data-source.ts";
 import * as common from "./common.js";
 
+
 async function main() {
   DefineComponent();
   // init an array

@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "ES2018",
+        "outDir": "dist",
+        "sourceMap": true,
+        "allowJs": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "lib": [
+            "DOM",
+            "ES2015",
+            "ES2018"
+        ]
+    },
+    "exclude": [
+        "dist"
+    ]
+}

@@ -2,6 +2,9 @@ import { AIUnit, MainCharactor } from "./unit.ts";
 import * as card from "./card.ts";
 import { Combat } from "./game-def.ts";
 import { log } from "./logger.ts";
+import { PIXI } from "./pixi.js";
+
+console.log(PIXI);
 
 const robber1 = new AIUnit("强盗1", {
   drawPile: [

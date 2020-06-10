@@ -80,7 +80,7 @@ export class Combat {
         }
         // This is a valid action, the card has been exercised.
         // Move the card from hand to discard pile.
-        unit.moveToDiscardFromHand(action.card);    // todo: something wrong here
+        unit.moveToDiscardFromHand(action.card); // todo: something wrong here
       }
     })();
 
