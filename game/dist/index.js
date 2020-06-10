@@ -42637,6 +42637,11 @@ System.register(
             this.participantA = participantA;
             this.participantB = participantB;
             this.unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
+            this.stateChange = new csp.UnbufferredChannel();
+            this.multicaster = new csp.Multicaster(this.stateChange);
+          }
+          onStateChange() {
+            return this.multicaster.copy();
           }
           getUnitOfThisTurn() {
             if (this.unitOfThisTurn === this.participantA) {
@@ -42684,6 +42689,7 @@ System.register(
                 console.log(JSON.stringify(unit, null, 1));
                 console.log(unit.cards.hand);
                 const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
+                this.stateChange.put(this);
                 console.log("failedToDraw", failedToDraw);
                 console.log(unit.cards.hand);
                 const action = await unit.takeAction({
@@ -42757,8 +42763,8 @@ System.register(
     var pixi_js_1, unit_ts_1, card, game_def_ts_1, logger_ts_3, csp, type, app;
     var __moduleName = context_9 && context_9.id;
     async function main() {
-      CardUI("攻击1");
-      CardUI("攻击2");
+      //   CardUI("攻击1");
+      //   CardUI("攻击2");
       const robber1 = new unit_ts_1.AIUnit("强盗1", {
         drawPile: [
           new card.Attack2(),
@@ -42791,9 +42797,24 @@ System.register(
       // Start the campagin
       logger_ts_3.log("迎面一个强盗朝你走来，你要怎么做？");
       const combat1 = new game_def_ts_1.Combat(mainC, robber1);
+      renderCom(combat1.onStateChange());
       await combat1.begin();
       const combat2 = new game_def_ts_1.Combat(mainC, robber2);
       await combat2.begin();
+    }
+    async function renderCom(combatStateChange) {
+      while (true) {
+        // console.log("wait");
+        let combat = await combatStateChange.pop();
+        // console.log("done");
+        if (!combat) {
+          throw new Error("unreachable");
+        }
+        let handCards = combat.participantA.cards.hand;
+        for (let card of handCards) {
+          CardUI(card.name);
+        }
+      }
     }
     function CardUI(cardName) {
       // @ts-ignore

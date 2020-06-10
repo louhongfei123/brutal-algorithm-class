@@ -4,11 +4,17 @@ import { log } from "./logger.ts";
 
 export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
+  private stateChange = new csp.UnbufferredChannel<Combat>();
+  private multicaster = new csp.Multicaster<Combat>(this.stateChange);
 
   constructor(
     public participantA: Unit,
     public participantB: Unit,
   ) {}
+
+  onStateChange(): csp.Channel<Combat> {
+    return this.multicaster.copy();
+  }
 
   getUnitOfThisTurn(): Unit {
     if (this.unitOfThisTurn === this.participantA) {
@@ -61,6 +67,7 @@ export class Combat {
         console.log(JSON.stringify(unit, null, 1));
         console.log(unit.cards.hand);
         const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
+        this.stateChange.put(this);
         console.log("failedToDraw", failedToDraw);
         console.log(unit.cards.hand);
         const action = await unit.takeAction({

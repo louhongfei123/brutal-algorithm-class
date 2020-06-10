@@ -29,8 +29,8 @@ let app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 async function main() {
-  CardUI("攻击1");
-  CardUI("攻击2");
+  //   CardUI("攻击1");
+  //   CardUI("攻击2");
 
   const robber1 = new AIUnit("强盗1", {
     drawPile: [
@@ -65,9 +65,32 @@ async function main() {
   // Start the campagin
   log("迎面一个强盗朝你走来，你要怎么做？");
   const combat1 = new Combat(mainC, robber1);
+  renderCom(combat1.onStateChange());
   await combat1.begin();
   const combat2 = new Combat(mainC, robber2);
   await combat2.begin();
+}
+
+async function renderCom(combatStateChange: csp.Channel<Combat>) {
+  while (true) {
+    // console.log("wait");
+    let combat = await combatStateChange.pop();
+    // console.log("done");
+    if (!combat) {
+      throw new Error("unreachable");
+    }
+
+    // Render player's hand cards
+    let handCards = combat.participantA.cards.hand;
+    for (let card of handCards) {
+      CardUI(card.name);
+    }
+
+    // Render discard pile
+
+    // Render draw pile
+    
+  }
 }
 
 function CardUI(cardName: string) {
