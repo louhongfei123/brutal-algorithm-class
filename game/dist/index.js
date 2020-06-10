@@ -42811,10 +42811,7 @@ System.register(
           throw new Error("unreachable");
         }
         // Render player's hand cards
-        let handCards = combat.participantA.cards.hand;
-        for (let [i, card] of handCards.entries()) {
-          CardUI(card.name, 400 + i * 128, 600);
-        }
+        renderHand(combat.participantA.cards.hand);
         // Render discard pile
         let discardPile = combat.participantA.cards.discardPile;
         for (let card of discardPile) {
@@ -42825,6 +42822,21 @@ System.register(
         CardUI("You", 200, 300);
         // Render enermy
         CardUI("enermy", 800, 300);
+      }
+    }
+    function renderHand(cards) {
+      for (let [i, card] of cards.entries()) {
+        let cardUI = CardUI(card.name, 400 + i * 128, 600);
+        // @ts-ignore
+        cardUI.on("mouseover", function (e) {
+          // @ts-ignore
+          cardUI.position.y += -40;
+        });
+        // @ts-ignore
+        cardUI.on("mouseout", function (e) {
+          // @ts-ignore
+          cardUI.position.y += 40;
+        });
       }
     }
     function CardUI(cardName, x, y) {
@@ -42883,6 +42895,7 @@ System.register(
           }
         });
       }
+      return aCard;
     }
     return {
       setters: [

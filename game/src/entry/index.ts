@@ -1,6 +1,7 @@
 import { PIXI } from "../libs/pixi.js";
 import { AIUnit, MainCharactor } from "../unit.ts";
 import * as card from "../card.ts";
+import { Card } from "../interfaces.ts";
 import { Combat } from "../game-def.ts";
 import { log } from "../logger.ts";
 import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
@@ -81,10 +82,7 @@ async function renderCom(combatStateChange: csp.Channel<Combat>) {
     }
 
     // Render player's hand cards
-    let handCards = combat.participantA.cards.hand;
-    for (let [i, card] of handCards.entries()) {
-      CardUI(card.name, 400 + i * 128, 600);
-    }
+    renderHand(combat.participantA.cards.hand);
 
     // Render discard pile
     let discardPile = combat.participantA.cards.discardPile;
@@ -99,6 +97,22 @@ async function renderCom(combatStateChange: csp.Channel<Combat>) {
 
     // Render enermy
     CardUI("enermy", 800, 300);
+  }
+}
+
+function renderHand(cards: Card[]) {
+  for (let [i, card] of cards.entries()) {
+    let cardUI = CardUI(card.name, 400 + i * 128, 600);
+    // @ts-ignore
+    cardUI.on("mouseover", function (e) {
+      // @ts-ignore
+      cardUI.position.y += -40;
+    });
+    // @ts-ignore
+    cardUI.on("mouseout", function (e) {
+      // @ts-ignore
+      cardUI.position.y += 40;
+    });
   }
 }
 
@@ -164,6 +178,7 @@ function CardUI(cardName: string, x: number, y: number) {
       }
     });
   }
+  return aCard;
 }
 
 main();
