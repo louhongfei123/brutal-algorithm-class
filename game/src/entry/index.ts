@@ -7,7 +7,7 @@ import { log } from "../logger.ts";
 import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
 import { renderHand } from "../render/hand.ts";
 import { renderUnit } from "../render/unit.ts";
-import { hitTestRectangle } from "../render/collision.ts"
+import { hitTestRectangle } from "../render/collision.ts";
 
 let type = "WebGL";
 // @ts-ignore
@@ -151,7 +151,7 @@ async function renderCombat(
     app.stage.addChild(enermy);
 
     // Render player's hand cards
-    app.stage.addChild(renderHand(combat.participantA.cards.hand));
+    app.stage.addChild(renderHand(combat.participantA.cards.hand, enermy));
   }
 }
 

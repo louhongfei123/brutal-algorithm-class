@@ -42751,18 +42751,78 @@ System.register(
   },
 );
 System.register(
-  "file:///workspace/brutal-algorithm-class/game/src/render/hand",
-  ["file:///workspace/brutal-algorithm-class/game/src/libs/pixi"],
+  "file:///workspace/brutal-algorithm-class/game/src/render/collision",
+  [],
   function (exports_9, context_9) {
     "use strict";
-    var pixi_js_1;
     var __moduleName = context_9 && context_9.id;
-    function renderHand(cards) {
+    // @ts-ignore
+    function hitTestRectangle(r1, r2) {
+      //Define the variables we'll need to calculate
+      let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
+      //hit will determine whether there's a collision
+      hit = false;
+      //Find the center points of each sprite
+      r1.centerX = r1.x + r1.width / 2;
+      r1.centerY = r1.y + r1.height / 2;
+      r2.centerX = r2.x + r2.width / 2;
+      r2.centerY = r2.y + r2.height / 2;
+      //Find the half-widths and half-heights of each sprite
+      r1.halfWidth = r1.width / 2;
+      r1.halfHeight = r1.height / 2;
+      r2.halfWidth = r2.width / 2;
+      r2.halfHeight = r2.height / 2;
+      //Calculate the distance vector between the sprites
+      vx = r1.centerX - r2.centerX;
+      vy = r1.centerY - r2.centerY;
+      //Figure out the combined half-widths and half-heights
+      combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+      combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+      //Check for a collision on the x axis
+      if (Math.abs(vx) < combinedHalfWidths) {
+        //A collision might be occurring. Check for a collision on the y axis
+        if (Math.abs(vy) < combinedHalfHeights) {
+          //There's definitely a collision happening
+          hit = true;
+        } else {
+          //There's no collision on the y axis
+          hit = false;
+        }
+      } else {
+        //There's no collision on the x axis
+        hit = false;
+      }
+      //`hit` will be either `true` or `false`
+      return hit;
+    }
+    exports_9("hitTestRectangle", hitTestRectangle);
+    return {
+      setters: [],
+      execute: function () {
+      },
+    };
+  },
+);
+System.register(
+  "file:///workspace/brutal-algorithm-class/game/src/render/hand",
+  [
+    "file:///workspace/brutal-algorithm-class/game/src/libs/pixi",
+    "file:///workspace/brutal-algorithm-class/game/src/render/collision",
+  ],
+  function (exports_10, context_10) {
+    "use strict";
+    var pixi_js_1, collision_ts_1;
+    var __moduleName = context_10 && context_10.id;
+    function renderHand(
+      cards,
+      // @ts-ignore
+      enermy,
+    ) {
       // @ts-ignore
       const container = new pixi_js_1.PIXI.Container();
       container.sortableChildren = true;
       for (let [i, card] of cards.entries()) {
-        let cardUI = CardUI(card.name, 400 + i * 128, 600);
+        let cardUI = CardUI(card.name, 400 + i * 128, 600, enermy);
         const originalY = cardUI.position.y;
         // @ts-ignore
         cardUI.on("mouseover", function (e) {
@@ -42778,8 +42838,14 @@ System.register(
       }
       return container;
     }
-    exports_9("renderHand", renderHand);
-    function CardUI(cardName, x, y) {
+    exports_10("renderHand", renderHand);
+    function CardUI(
+      cardName,
+      x,
+      y,
+      // @ts-ignore
+      enermy,
+    ) {
       // @ts-ignore
       let aCard = new pixi_js_1.PIXI.Container();
       // @ts-ignore
@@ -42842,6 +42908,7 @@ System.register(
             drag.position.y += e.data.originalEvent.movementY;
             // @ts-ignore
             // console.log(drag.position);
+            console.table(collision_ts_1.hitTestRectangle(target, enermy));
           }
         });
       }
@@ -42852,6 +42919,9 @@ System.register(
         function (pixi_js_1_1) {
           pixi_js_1 = pixi_js_1_1;
         },
+        function (collision_ts_1_1) {
+          collision_ts_1 = collision_ts_1_1;
+        },
       ],
       execute: function () {
       },
@@ -42861,10 +42931,10 @@ System.register(
 System.register(
   "file:///workspace/brutal-algorithm-class/game/src/render/unit",
   ["file:///workspace/brutal-algorithm-class/game/src/libs/pixi"],
-  function (exports_10, context_10) {
+  function (exports_11, context_11) {
     "use strict";
     var pixi_js_2;
-    var __moduleName = context_10 && context_10.id;
+    var __moduleName = context_11 && context_11.id;
     function renderUnit(unit, x, y) {
       // @ts-ignore
       let unitContainer = new pixi_js_2.PIXI.Container();
@@ -42899,7 +42969,7 @@ System.register(
       const originalY = unitContainer.position.y;
       return unitContainer;
     }
-    exports_10("renderUnit", renderUnit);
+    exports_11("renderUnit", renderUnit);
     return {
       setters: [
         function (pixi_js_2_1) {
@@ -42923,7 +42993,7 @@ System.register(
     "file:///workspace/brutal-algorithm-class/game/src/render/hand",
     "file:///workspace/brutal-algorithm-class/game/src/render/unit",
   ],
-  function (exports_11, context_11) {
+  function (exports_12, context_12) {
     "use strict";
     var pixi_js_3,
       unit_ts_1,
@@ -42937,7 +43007,7 @@ System.register(
       Width,
       Height,
       app;
-    var __moduleName = context_11 && context_11.id;
+    var __moduleName = context_12 && context_12.id;
     async function main() {
       //   CardUI("攻击1");
       //   CardUI("攻击2");
@@ -42984,7 +43054,10 @@ System.register(
       // Start the campagin
       logger_ts_3.log("迎面一个强盗朝你走来，你要怎么做？");
       const combat1 = new combat_ts_1.Combat(mainC, robber1);
-      const combatRenderrer = renderCombat(combat1.onStateChange());
+      const combatRenderrer = renderCombat(
+        combat1.onStateChange(),
+        userCardSelection,
+      );
       const combatState = combat1.begin();
       await combatState;
       console.debug("Combat is done!");
@@ -42993,7 +43066,7 @@ System.register(
       //   const combat2 = new Combat(mainC, robber2);
       //   await combat2.begin();
     }
-    async function renderCombat(combatStateChange) {
+    async function renderCombat(combatStateChange, userCardSelection) {
       while (true) {
         // console.log("wait");
         let combat = await combatStateChange.pop();
@@ -43038,7 +43111,7 @@ System.register(
         app.stage.addChild(enermy);
         // Render player's hand cards
         app.stage.addChild(
-          hand_ts_1.renderHand(combat.participantA.cards.hand),
+          hand_ts_1.renderHand(combat.participantA.cards.hand, enermy),
         );
       }
     }

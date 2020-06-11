@@ -5,13 +5,18 @@ import { Card } from "../interfaces.ts";
 import { Combat } from "../combat.ts";
 import { log } from "../logger.ts";
 import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
+import { hitTestRectangle } from "./collision.ts";
 
-export function renderHand(cards: Card[]) {
+export function renderHand(
+  cards: Card[],
+  // @ts-ignore
+  enermy,
+) {
   // @ts-ignore
   const container = new PIXI.Container();
   container.sortableChildren = true;
   for (let [i, card] of cards.entries()) {
-    let cardUI = CardUI(card.name, 400 + i * 128, 600);
+    let cardUI = CardUI(card.name, 400 + i * 128, 600, enermy);
     const originalY = cardUI.position.y;
     // @ts-ignore
     cardUI.on("mouseover", function (e) {
@@ -28,7 +33,13 @@ export function renderHand(cards: Card[]) {
   return container;
 }
 
-function CardUI(cardName: string, x: number, y: number) {
+function CardUI(
+  cardName: string,
+  x: number,
+  y: number,
+  // @ts-ignore
+  enermy,
+) {
   // @ts-ignore
   let aCard = new PIXI.Container();
 
@@ -94,6 +105,8 @@ function CardUI(cardName: string, x: number, y: number) {
         drag.position.y += e.data.originalEvent.movementY;
         // @ts-ignore
         // console.log(drag.position);
+
+        console.table(hitTestRectangle(target, enermy));
       }
     });
   }
