@@ -85,7 +85,6 @@ Let's plant trees!
 - AVL树
 - 堆排序 Heap Sort
 - 优先级队列 Priority Queue
-- 红黑树
 
 ## 第四周
 ### 第 10 课
