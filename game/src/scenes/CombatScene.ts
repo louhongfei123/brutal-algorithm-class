@@ -103,15 +103,6 @@ export default class CombatScene extends Phaser.Scene {
             handCard.destroy();
             await this.userAction.put(action);
             overlapCollider.destroy();
-            Phaser.Actions.Call(
-              handCards.getChildren(),
-              (child) => {
-                console.log(child);
-                console.log(345789349758);
-                // child.setInteractive(false);
-              },
-              null
-            );
           }
         }
       );
@@ -129,28 +120,29 @@ export default class CombatScene extends Phaser.Scene {
     this.handCards = [];
 
     const hand = combat.getUnitOfThisTurn().cards.hand;
-    console.log(hand);
-    const cards: Phaser.GameObjects.Container[] = [];
     for (let i = 0; i < hand.length; i++) {
+      // create a container
       const width = 90;
       const cardContainer = this.add.container(200 + width * i, 550);
+      
+      // create children of the container
       const rect = this.add.rectangle(0, 0, width, 148, 0x6666ff);
       rect.setStrokeStyle(4, 0xefc53f);
       const text = this.add.text(-35, -65, hand[i].name);
       cardContainer.add(rect);
       cardContainer.add(text);
+      
+      // make the container interactive
       cardContainer.setSize(rect.width, rect.height);
-
-      console.log(cardContainer);
       cardContainer.setInteractive();
       this.input.setDraggable(cardContainer);
-      cards.push(cardContainer);
-      cardContainer.setData("model", hand[i]);
-      // console.log(rect);
+
+      // add the container to the physics system
       this.physics.add.existing(cardContainer);
+      cardContainer.setData("model", hand[i]);
       this.handCards.push(cardContainer);
     }
-    return new Phaser.GameObjects.Group(scene, cards);
+    return new Phaser.GameObjects.Group(scene, this.handCards);
   }
 
   async refreshEnermy(
