@@ -96,15 +96,23 @@ export default class CombatScene extends Phaser.Scene {
         const star = this.physics.add.image(300, 300, STAR_KEY);
         star.setInteractive();
         this.input.setDraggable(star);
+        const star2 = this.physics.add.image(400, 300, STAR_KEY);
+        star2.setInteractive();
+        this.input.setDraggable(star2);
+        
+        this.physics.add.existing(enermy);
 
         // const handCardsBody = new Phaser.Physics.Arcade.Body(this.physics.world,  handCards.children.entries[0]);
 
         // this.physics.world.on('overlap', () => {
         //     console.log("WTF");
         // })
-        // this.physics.add.overlap(handCards.children[0], enermy, function (handCards, enermy) {
-        //     console.log("overlap!");
-        // });
+        this.physics.add.overlap(star, star2, function (handCards, enermy) {
+            console.log("overlap!");
+        });
+        this.physics.add.overlap(star, enermy, function (handCards, enermy) {
+            console.log("overlap! 2");
+        });
 
         this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
             gameObject.x = dragX;
