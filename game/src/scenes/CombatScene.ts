@@ -29,13 +29,8 @@ export default class CombatScene extends Phaser.Scene {
     super("game-scene");
 
     const robber1 = new AIUnit("强盗1", {
-      drawPile: [
-        new card.Attack2(),
-        new card.Attack2(),
-      ],
-      equipped: [
-        new card.Health(1),
-      ],
+      drawPile: [new card.Attack2(), new card.Attack2()],
+      equipped: [new card.Health(1)],
     });
     const robber2 = new AIUnit("强盗2", {
       drawPile: [
@@ -43,9 +38,7 @@ export default class CombatScene extends Phaser.Scene {
         new card.Attack3(),
         new card.FollowUpAttack(),
       ],
-      equipped: [
-        new card.Health(5),
-      ],
+      equipped: [new card.Health(5)],
     });
 
     const userCardSelection = new csp.UnbufferredChannel<any>();
@@ -58,20 +51,14 @@ export default class CombatScene extends Phaser.Scene {
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: [
-          new card.Attack1(),
-          new card.Attack1(),
-          new card.Heal(),
-        ],
-        equipped: [
-          new card.Health(5),
-        ],
+        drawPile: [new card.Attack1(), new card.Attack1(), new card.Heal()],
+        equipped: [new card.Health(5)],
       },
       // new csp.UnbufferredChannel<string>(),
       // userControlFunctions,
       {
         actions: this.userAction,
-      },
+      }
     );
     // Start the campagin
     this.combat = new Combat(mainC, robber1);
@@ -83,11 +70,10 @@ export default class CombatScene extends Phaser.Scene {
     this.load.image(STAR_KEY, "assets/star.png");
     this.load.image(BOMB_KEY, "assets/bomb.png");
 
-    this.load.spritesheet(
-      DUDE_KEY,
-      "assets/dude.png",
-      { frameWidth: 32, frameHeight: 48 },
-    );
+    this.load.spritesheet(DUDE_KEY, "assets/dude.png", {
+      frameWidth: 32,
+      frameHeight: 48,
+    });
   }
 
   async create() {
@@ -123,9 +109,22 @@ export default class CombatScene extends Phaser.Scene {
     });
   }
 
+  async gameControlLoop(combat: Combat) {
+    while (true) {
+      let state = await combat.onStateChange().pop();
+      switch (state) {
+        case "taking action":
+          break;
+        case undefined:
+          throw new Error("unreachable");
+          break;
+      }
+    }
+  }
+
   async createHandCards(
     scene: Phaser.Scene,
-    combat: Combat,
+    combat: Combat
   ): Promise<Phaser.GameObjects.Group> {
     const hand = combat.getUnitOfThisTurn().cards.hand;
     console.log(hand);
@@ -145,7 +144,7 @@ export default class CombatScene extends Phaser.Scene {
 
   async createEnermy(
     scene: Phaser.Scene,
-    combat: Combat,
+    combat: Combat
   ): Promise<Phaser.GameObjects.Rectangle> {
     // const enermy = combat.getOpponent();
     const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);

@@ -17,7 +17,7 @@ export class MainCharactor extends Unit {
     cards: CardInit,
     // public choiceChan: csp.Channel<string>,
     // public userControlFunctions: UserControlFunctions,
-    private userCommunications: UserCommunications,
+    private userCommunications: UserCommunications
   ) {
     super(name, cards);
   }

@@ -71,10 +71,7 @@ export class Unit {
     discardPile: [],
   };
 
-  constructor(
-    public name: string,
-    cards: CardInit,
-  ) {
+  constructor(public name: string, cards: CardInit) {
     this.cards.equipped = cards.equipped;
     this.cards.drawPile = cards.drawPile;
     for (let card of cards.equipped) {
@@ -127,21 +124,16 @@ export class Unit {
   }
 
   getHealth(): number {
-    const health = this.cardEffects.map(
-      (element) => element.health || 0,
-    ).reduce(
-      (p, c) => p + c,
-      0,
-    );
+    const health = this.cardEffects
+      .map((element) => element.health || 0)
+      .reduce((p, c) => p + c, 0);
     return health;
   }
 
   getHealthLimit(): number {
-    return this.cardEffects.map(
-      (element) => element.healthLimit || 0,
-    ).reduce(
-      (p, c) => p + c,
-    );
+    return this.cardEffects
+      .map((element) => element.healthLimit || 0)
+      .reduce((p, c) => p + c);
   }
   isDead(): boolean {
     return this.getHealth() <= 0;

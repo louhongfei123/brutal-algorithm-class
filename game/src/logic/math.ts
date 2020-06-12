@@ -1,7 +1,7 @@
 // Shuffle array in-place
 export function shuffle(array: any[]) {
   for (let i = 0; i < array.length; i++) {
-    let pick = Math.floor(Math.random() * (array.length)); // [0 ~ 1)
+    let pick = Math.floor(Math.random() * array.length); // [0 ~ 1)
     swap(array, i, pick);
   }
   return array;

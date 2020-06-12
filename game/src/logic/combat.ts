@@ -2,17 +2,16 @@ import * as csp from "../lib/csp";
 import { Unit } from "./interfaces";
 import { log } from "./logger";
 
+type CombatState = "taking action";
+
 export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
-  private stateChange = new csp.UnbufferredChannel<Combat>();
-  private multicaster = new csp.Multicaster<Combat>(this.stateChange);
+  private stateChange = new csp.UnbufferredChannel<CombatState>();
+  private multicaster = new csp.Multicaster<CombatState>(this.stateChange);
 
-  constructor(
-    public participantA: Unit,
-    public participantB: Unit,
-  ) {}
+  constructor(public participantA: Unit, public participantB: Unit) {}
 
-  onStateChange(): csp.Channel<Combat> {
+  onStateChange(): csp.Channel<CombatState> {
     return this.multicaster.copy();
   }
 
@@ -67,14 +66,14 @@ export class Combat {
         // console.log(JSON.stringify(unit, null, 1));
         console.log(unit.cards.hand);
         const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
-        await this.stateChange.put(this);
+        await this.stateChange.put("taking action");
         console.log("failedToDraw", failedToDraw);
         console.log(unit.cards.hand);
         const action = await unit.takeAction({
           opponent: this.getOpponent(),
         });
         await log(
-          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`,
+          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
         );
 
         try {
@@ -92,12 +91,14 @@ export class Combat {
     })();
 
     await log(
-      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`,
+      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`
     );
     action.to.cardEffects.push(effect);
     action.from.cards.discardPile.push(action.card);
     await log(
-      `${action.to.name} has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`,
+      `${
+        action.to.name
+      } has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`
     );
     await log("-------------------\n\n\n");
   }
@@ -121,6 +122,5 @@ export class Combat {
   }
 
   // Winner can loot 1 card from the looser
-  async loot(winner: Unit, looser: Unit) {
-  }
+  async loot(winner: Unit, looser: Unit) {}
 }

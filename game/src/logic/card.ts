@@ -55,13 +55,13 @@ export class FollowUpAttack implements Card {
   effect(input: EffectArguments): CardEffect {
     if (input.from.cards.discardPile.length === 0) {
       throw new Error(
-        "FoolowUpAttack: There is no card on the top of discard pile",
+        "FoolowUpAttack: There is no card on the top of discard pile"
       );
     }
     // console.log(JSON.stringify(input.from.cards.discardPile));
-    let eff = input.from.cards
-      .discardPile[input.from.cards.discardPile.length - 1]
-      .effect(input);
+    let eff = input.from.cards.discardPile[
+      input.from.cards.discardPile.length - 1
+    ].effect(input);
     // @ts-ignore
     eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
     return eff;
