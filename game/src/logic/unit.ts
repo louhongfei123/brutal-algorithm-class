@@ -1,14 +1,14 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
 import { Unit, CardInit, CombatState, Action } from "./interfaces";
-import { Actions } from 'phaser';
+import { Actions } from "phaser";
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;
 }
 
 export interface UserCommunications {
-  actions: csp.Channel<Action>
+  actions: csp.Channel<Action>;
 }
 
 export class MainCharactor extends Unit {
@@ -17,7 +17,7 @@ export class MainCharactor extends Unit {
     cards: CardInit,
     // public choiceChan: csp.Channel<string>,
     // public userControlFunctions: UserControlFunctions,
-    private userCommunications: UserCommunications
+    private userCommunications: UserCommunications,
   ) {
     super(name, cards);
   }
@@ -40,10 +40,9 @@ export class MainCharactor extends Unit {
     //     }
     //   }
     // })();
-    console.log('main charactor needs to take action');
+    console.log("main charactor needs to take action");
     // const choice = await this.userControlFunctions.getChoiceFromUser();
     // console.debug("userControlFunctions.getChoiceFromUser", choice);
-    
 
     // const targetUnit = await (async () => {
     //   while (true) {
@@ -62,10 +61,10 @@ export class MainCharactor extends Unit {
     // })();
 
     const action = await this.userCommunications.actions.pop();
-    if(!action) {
-      throw new Error('unreachable');
+    if (!action) {
+      throw new Error("unreachable");
     }
-    console.log('game logic received', action);
+    console.log("game logic received", action);
     return action;
 
     // await csp.sleep(400);
@@ -89,6 +88,8 @@ async function getChoiceFromUser(choice: csp.Channel<string>): Promise<string> {
 
 export class AIUnit extends Unit {
   async takeAction(combatState: CombatState): Promise<Action> {
+    log("AI is taking actions");
+    await csp.sleep(10000);
     return {
       from: this,
       to: combatState.opponent,
