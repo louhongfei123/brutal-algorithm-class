@@ -5,7 +5,7 @@ import { Card } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 import { log } from "../logic/logger";
 import * as csp from "../lib/csp";
-import { Body } from 'matter';
+
 
 
 const GROUND_KEY = 'ground'
@@ -94,11 +94,12 @@ export default class CombatScene extends Phaser.Scene {
         // console.log(93, handCards.children.entries[0], enermy);
 
         // let overlapping = false;
-        this.physics.add.overlap(handCards, enermy, function (handCards, enermy) {
+        this.physics.add.overlap(handCards, enermy, (handCards, enermy) => {
             // console.log("overlap! 2");
             // overlapping = true;
-            if(!pointer.isDonw) {
-                let action = 
+            let pointer = this.input.activePointer;
+            if(!pointer.isDown) {
+                let action = {}
             }
         });
 

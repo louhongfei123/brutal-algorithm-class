@@ -103,8 +103,8 @@ export class Combat {
   }
 
   async begin() {
-    let winner = undefined;
-    let looser = undefined;
+    let winner: any = undefined;
+    // let looser = undefined;
     while (winner === undefined) {
       const unit = this.getUnitOfThisTurn();
       await log(`===================`);
