@@ -58,7 +58,7 @@ export default class CombatScene extends Phaser.Scene {
       // userControlFunctions,
       {
         actions: this.userAction,
-      }
+      },
     );
     // Start the campagin
     this.combat = new Combat(mainC, robber1);
@@ -79,52 +79,50 @@ export default class CombatScene extends Phaser.Scene {
   async create() {
     this.combat.begin();
     this.add.image(400, 300, "sky");
-    await this.combat.onStateChange().pop();
-    const handCards = await this.createHandCards(this, this.combat);
-    const enermy = await this.createEnermy(this, this.combat);
-    // console.log(93, handCards.children.entries[0], enermy);
-
-    // let overlapping = false;
-    this.physics.add.overlap(handCards, enermy, async (handCard, enermy) => {
-      // console.log("overlap! 2");
-      // overlapping = true;
-      let pointer = this.input.activePointer;
-      if (!pointer.isDown) {
-        // submit an action to the combat.
-        let action: Action = {
-          from: this.combat.getUnitOfThisTurn(),
-          to: this.combat.getOpponent(),
-          card: handCard.getData("model"),
-        };
-        console.log(action);
-        handCard.destroy();
-        // handCard.setActive(false);
-        await this.userAction.put(action);
-      }
-    });
-
     this.input.on("drag", function (pointer, gameObject, dragX, dragY) {
       gameObject.x = dragX;
       gameObject.y = dragY;
     });
+    this.gameControlLoop(this.combat);
   }
 
   async gameControlLoop(combat: Combat) {
     while (true) {
-      let state = await combat.onStateChange().pop();
-      switch (state) {
-        case "taking action":
-          break;
-        case undefined:
-          throw new Error("unreachable");
-          break;
-      }
+      // let state = await combat.onStateChange().pop();
+      let state = await combat.participantA.waitForTurn();
+      const handCards = await this.createHandCards(this, this.combat);
+      const enermy = await this.refreshEnermy(this, this.combat);
+      // switch (state) {
+      //   case "taking action":
+      const overlapCollider = this.physics.add.overlap(
+        handCards,
+        enermy,
+        async (handCard, enermy) => {
+          let pointer = this.input.activePointer;
+          if (!pointer.isDown) {
+            // submit an action to the combat.
+            let action: Action = {
+              from: this.combat.getUnitOfThisTurn(),
+              to: this.combat.getOpponent(),
+              card: handCard.getData("model"),
+            };
+            console.log(action);
+            handCard.destroy();
+            await this.userAction.put(action);
+            overlapCollider.destroy();
+          }
+        },
+      );
+      //   break;
+      // case undefined:
+      //   throw new Error("unreachable");
+      //   break;
     }
   }
 
   async createHandCards(
     scene: Phaser.Scene,
-    combat: Combat
+    combat: Combat,
   ): Promise<Phaser.GameObjects.Group> {
     const hand = combat.getUnitOfThisTurn().cards.hand;
     console.log(hand);
@@ -142,9 +140,9 @@ export default class CombatScene extends Phaser.Scene {
     return new Phaser.GameObjects.Group(scene, cards);
   }
 
-  async createEnermy(
+  async refreshEnermy(
     scene: Phaser.Scene,
-    combat: Combat
+    combat: Combat,
   ): Promise<Phaser.GameObjects.Rectangle> {
     // const enermy = combat.getOpponent();
     const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);

@@ -62,7 +62,7 @@ export interface CardsOfUnit extends CardInit {
   discardPile: Card[];
 }
 
-export class Unit {
+export abstract class Unit {
   public cardEffects: CardEffect[] = [];
   public cards: CardsOfUnit = {
     hand: [],
@@ -83,9 +83,10 @@ export class Unit {
     }
   }
 
-  async takeAction(combatState: CombatState): Promise<Action> {
-    throw new Error("Not Implemented");
-  }
+  async abstract takeAction(combatState: CombatState): Promise<Action>
+
+  // resolves when it is this unit's turn
+  async abstract waitForTurn(): Promise<undefined>
 
   // Draw n cards from draw pile to hand.
   // It turns the number of card that failed to be drawn.

@@ -16,10 +16,9 @@ export default class BombSpawner {
   }
 
   spawn(playerX = 0) {
-    const x =
-      playerX < 400
-        ? Phaser.Math.Between(400, 800)
-        : Phaser.Math.Between(0, 400);
+    const x = playerX < 400
+      ? Phaser.Math.Between(400, 800)
+      : Phaser.Math.Between(0, 400);
 
     const bomb = this.group.create(x, 16, this.key);
     bomb.setBounce(1);
