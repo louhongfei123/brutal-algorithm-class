@@ -1,17 +1,35 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "strictBindCallApply": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": true,
-        "strictPropertyInitialization": true,
+	"compilerOptions": {
+		"target": "es5",
+		"module": "es6",
+		"strict": true,
+		"noImplicitAny": false,
+		"noEmit": true,
+		"allowJs": true,
+		"jsx": "preserve",
+		"importHelpers": true,
+		"moduleResolution": "node",
+		"experimentalDecorators": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": true,
+		"baseUrl": "./src",
+		"paths": {
+		  "~/*": ["./*"]
+		},
+		"typeRoots": [
+			"node_modules/@types",
+			"node_module/phaser/types"
+		],
+		"types": [
+			"phaser"
+		],
         "lib": [
-            "DOM",
             "ES2015",
-            "ES2018"
+            "DOM"
         ]
-    },
-    "exclude": [
-        "dist"
-    ]
+	},
+	"include": [
+		"src/**/*"
+	]
 }

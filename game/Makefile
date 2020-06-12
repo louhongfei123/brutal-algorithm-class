@@ -7,20 +7,11 @@ fmt:
 watch:
 	$$(npm bin)/tsc -w
 
-build: clean fmt
-	mkdir dist
-	deno bundle -c tsconfig.json src/entry/index.ts > dist/index.js
-	cp src/entry/index.html dist/index.html
-	make rename-ts-to-js
-
 rename-ts-to-js:
 	find ./dist -name '*.js' -exec sed -i "s/\.ts/\.js/g" {} +
 
 serve:
 	$$(npm bin)/http-server
-
-cli: fmt
-	deno run src/entry/cli.ts
 
 lc:
 	find ./src -name '*.ts' | xargs wc -l | sort -nr

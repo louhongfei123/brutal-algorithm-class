@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
 import ScoreLabel from '../ui/ScoreLabel'
-import BombSpawner from './BombSpawner'
+import BombSpawner from './BombSpawner';
 
 const GROUND_KEY = 'ground'
 const DUDE_KEY = 'dude'

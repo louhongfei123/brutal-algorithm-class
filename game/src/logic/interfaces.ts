@@ -1,4 +1,4 @@
-import * as math from "./math.ts";
+import * as math from "./math";
 
 export enum CardCategory {
   NormalCard = "NormalCard",

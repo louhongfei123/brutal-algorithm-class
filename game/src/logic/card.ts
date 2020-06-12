@@ -5,7 +5,7 @@ import {
   EquippmentCard,
   CardCategory,
   EffectArguments,
-} from "./interfaces.ts";
+} from "./interfaces";
 
 //////////////////
 // Attack Cards //

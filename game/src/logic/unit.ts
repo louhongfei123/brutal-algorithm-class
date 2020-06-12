@@ -1,7 +1,6 @@
-import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
-import { log } from "./logger.ts";
-import { Unit, CardInit, CombatState, Action } from "./interfaces.ts";
-// import { readLines } from "https://deno.land/std/io/bufio.ts";
+import * as csp from "../lib/csp";
+import { log } from "./logger";
+import { Unit, CardInit, CombatState, Action } from "./interfaces";
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;

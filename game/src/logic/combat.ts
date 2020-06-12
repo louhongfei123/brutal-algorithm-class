@@ -1,6 +1,6 @@
-import * as csp from "https://creatcodebuild.github.io/csp/dist/csp.ts";
-import { Unit } from "./interfaces.ts";
-import { log } from "./logger.ts";
+import * as csp from "../lib/csp";
+import { Unit } from "./interfaces";
+import { log } from "./logger";
 
 export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
