@@ -83,28 +83,35 @@ export default class CombatScene extends Phaser.Scene {
 
   async gameControlLoop(combat: Combat) {
     while (true) {
-      // let state = await combat.onStateChange().pop();
-      let state = await combat.participantA.waitForTurn();
-      const handCards = await this.refreshHandCards(this, this.combat);
-      const enermy = await this.refreshEnermy(this, this.combat);
-      const overlapCollider = this.physics.add.overlap(
-        handCards,
-        enermy,
-        async (handCard, enermy) => {
-          let pointer = this.input.activePointer;
-          if (!pointer.isDown) {
-            // submit an action to the combat.
-            let action: Action = {
-              from: this.combat.getUnitOfThisTurn(),
-              to: this.combat.getOpponent(),
-              card: handCard.getData("model"),
-            };
-            console.log(action);
-            handCard.destroy();
-            await this.userAction.put(action);
-            overlapCollider.destroy();
-          }
-        }
+      await csp.select(
+        [
+          [combat.participantA.waitForTurn(), async (state) => {
+            const handCards = await this.refreshHandCards(this, this.combat);
+            const enermy = await this.refreshEnermy(this, this.combat);
+            const overlapCollider = this.physics.add.overlap(
+              handCards,
+              enermy,
+              async (handCard, enermy) => {
+                let pointer = this.input.activePointer;
+                if (!pointer.isDown) {
+                  // submit an action to the combat.
+                  let action: Action = {
+                    from: this.combat.getUnitOfThisTurn(),
+                    to: this.combat.getOpponent(),
+                    card: handCard.getData("model"),
+                  };
+                  console.log(action);
+                  handCard.destroy();
+                  await this.userAction.put(action);
+                  overlapCollider.destroy();
+                }
+              }
+            );
+          }],
+          [combat.participantB.waitForTurn(), async() => {
+            console.log("enermy turn");
+          }]
+        ]
       );
     }
   }

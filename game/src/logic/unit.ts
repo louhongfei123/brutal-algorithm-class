@@ -11,7 +11,7 @@ export interface UserCommunications {
 }
 
 export class MainCharactor extends Unit {
-  myTurn: csp.Channel<undefined> = new csp.UnbufferredChannel();
+  readonly myTurn: csp.Channel<undefined> = new csp.UnbufferredChannel();
   constructor(
     public name: string,
     cards: CardInit,
@@ -33,15 +33,20 @@ export class MainCharactor extends Unit {
     return action;
   }
 
-  async waitForTurn() {
-    return this.myTurn.pop();
+  waitForTurn() {
+    return this.myTurn;
   }
 }
 
 export class AIUnit extends Unit {
+  readonly chan = csp.chan<undefined>();
+  constructor(public name: string, cards: CardInit) {
+    super(name, cards);
+  }
   async takeAction(combatState: CombatState): Promise<Action> {
     log("AI is taking actions");
     await csp.sleep(1000);
+    await this.chan.put(undefined);
     return {
       from: this,
       to: combatState.opponent,
@@ -50,7 +55,7 @@ export class AIUnit extends Unit {
   }
 
   // There is no need to wait for AI.
-  async waitForTurn(): Promise<undefined> {
-    return;
+  waitForTurn() {
+    return this.chan;
   }
 }

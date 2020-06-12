@@ -1,4 +1,5 @@
 import * as math from "./math";
+import * as csp from "../lib/csp";
 
 export enum CardCategory {
   NormalCard = "NormalCard",
@@ -86,7 +87,7 @@ export abstract class Unit {
   abstract async takeAction(combatState: CombatState): Promise<Action>;
 
   // resolves when it is this unit's turn
-  abstract async waitForTurn(): Promise<undefined>;
+  abstract waitForTurn(): csp.Channel<undefined>;
 
   // Draw n cards from draw pile to hand.
   // It turns the number of card that failed to be drawn.
