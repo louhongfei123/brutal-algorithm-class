@@ -112,6 +112,8 @@ export default class CombatScene extends Phaser.Scene {
                     card: handCard.getData('model')
                 }
                 console.log(action);
+                handCard.destroy();
+                // handCard.setActive(false);
                 await this.userAction.put(action);
             }
         });
