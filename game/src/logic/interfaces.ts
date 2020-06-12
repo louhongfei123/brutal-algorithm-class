@@ -83,10 +83,10 @@ export abstract class Unit {
     }
   }
 
-  async abstract takeAction(combatState: CombatState): Promise<Action>
+  abstract async takeAction(combatState: CombatState): Promise<Action>;
 
   // resolves when it is this unit's turn
-  async abstract waitForTurn(): Promise<undefined>
+  abstract async waitForTurn(): Promise<undefined>;
 
   // Draw n cards from draw pile to hand.
   // It turns the number of card that failed to be drawn.

@@ -174,7 +174,7 @@ interface DefaultCase<T> {
 // https://stackoverflow.com/questions/37021194/how-are-golang-select-statements-implemented
 export async function select<T, R1, R2>(
   channels: [SeletableChannel<T>, onSelect<T, R1>][],
-  defaultCase?: DefaultCase<R2>,
+  defaultCase?: DefaultCase<R2>
 ): Promise<R1 | R2> {
   let promises: Promise<number>[] = channels.map(async ([c, func], i) => {
     await c.ready();

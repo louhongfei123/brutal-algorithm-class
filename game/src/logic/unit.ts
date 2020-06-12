@@ -17,7 +17,7 @@ export class MainCharactor extends Unit {
     cards: CardInit,
     // public choiceChan: csp.Channel<string>,
     // public userControlFunctions: UserControlFunctions,
-    private userCommunications: UserCommunications,
+    private userCommunications: UserCommunications
   ) {
     super(name, cards);
   }
@@ -38,20 +38,10 @@ export class MainCharactor extends Unit {
   }
 }
 
-// async function getChoiceFromUser(choice: csp.Channel<string>): Promise<string> {
-//   console.log("debug mark"); // todo: implement it
-//   let chosen = await choice.pop();
-//   console.log("debug mark 2");
-//   if (!chosen) {
-//     throw new Error("unreachable");
-//   }
-//   return chosen;
-// }
-
 export class AIUnit extends Unit {
   async takeAction(combatState: CombatState): Promise<Action> {
     log("AI is taking actions");
-    await csp.sleep(3000);
+    await csp.sleep(1000);
     return {
       from: this,
       to: combatState.opponent,

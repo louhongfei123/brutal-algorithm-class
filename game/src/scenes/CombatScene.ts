@@ -16,6 +16,7 @@ export default class CombatScene extends Phaser.Scene {
   combat: Combat;
   // @ts-expect-error
   enermy: Phaser.GameObjects.GameObject;
+  handCards: Phaser.GameObjects.GameObject[] = [];
 
   userAction = new csp.UnbufferredChannel<Action>();
 
@@ -52,7 +53,7 @@ export default class CombatScene extends Phaser.Scene {
       // userControlFunctions,
       {
         actions: this.userAction,
-      },
+      }
     );
     // Start the campagin
     this.combat = new Combat(mainC, robber1);
@@ -84,10 +85,8 @@ export default class CombatScene extends Phaser.Scene {
     while (true) {
       // let state = await combat.onStateChange().pop();
       let state = await combat.participantA.waitForTurn();
-      const handCards = await this.createHandCards(this, this.combat);
+      const handCards = await this.refreshHandCards(this, this.combat);
       const enermy = await this.refreshEnermy(this, this.combat);
-      // switch (state) {
-      //   case "taking action":
       const overlapCollider = this.physics.add.overlap(
         handCards,
         enermy,
@@ -104,48 +103,67 @@ export default class CombatScene extends Phaser.Scene {
             handCard.destroy();
             await this.userAction.put(action);
             overlapCollider.destroy();
+            Phaser.Actions.Call(
+              handCards.getChildren(),
+              (child) => {
+                console.log(child);
+                console.log(345789349758);
+                // child.setInteractive(false);
+              },
+              null
+            );
           }
-        },
+        }
       );
-      //   break;
-      // case undefined:
-      //   throw new Error("unreachable");
-      //   break;
     }
   }
 
-  async createHandCards(
+  async refreshHandCards(
     scene: Phaser.Scene,
-    combat: Combat,
+    combat: Combat
   ): Promise<Phaser.GameObjects.Group> {
+    // reset hand cards references
+    for (let card of this.handCards) {
+      card.destroy();
+    }
+    this.handCards = [];
+
     const hand = combat.getUnitOfThisTurn().cards.hand;
     console.log(hand);
-    const cards: Phaser.GameObjects.Rectangle[] = [];
+    const cards: Phaser.GameObjects.Container[] = [];
     for (let i = 0; i < hand.length; i++) {
-      const rect = this.add.rectangle(200 + 74 * i, 550, 74, 148, 0x6666ff);
+      const width = 90;
+      const cardContainer = this.add.container(200 + width * i, 550);
+      const rect = this.add.rectangle(0, 0, width, 148, 0x6666ff);
       rect.setStrokeStyle(4, 0xefc53f);
-      rect.setInteractive();
-      this.input.setDraggable(rect);
-      cards.push(rect);
-      rect.setData("model", hand[i]);
+      const text = this.add.text(0, 0, hand[i].name);
+      cardContainer.add(rect);
+      cardContainer.add(text);
+
+      console.log(cardContainer);
+      cardContainer.setInteractive();
+      this.input.setDraggable(cardContainer);
+      cards.push(cardContainer);
+      cardContainer.setData("model", hand[i]);
       // console.log(rect);
-      this.physics.add.existing(rect);
+      this.physics.add.existing(cardContainer);
+      this.handCards.push(cardContainer);
     }
     return new Phaser.GameObjects.Group(scene, cards);
   }
 
   async refreshEnermy(
     scene: Phaser.Scene,
-    combat: Combat,
+    combat: Combat
   ): Promise<Phaser.GameObjects.Rectangle> {
     if (this.enermy) {
       this.enermy.destroy();
     }
     // const enermy = combat.getOpponent();
     const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);
+    this.add.text(580, 200, "敌人");
     this.enermy = enermy;
     enermy.setInteractive();
-    this.input.setDraggable(enermy);
     this.physics.add.existing(enermy);
     return enermy;
   }

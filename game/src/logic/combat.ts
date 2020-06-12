@@ -73,7 +73,7 @@ export class Combat {
           opponent: this.getOpponent(),
         });
         await log(
-          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`,
+          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
         );
 
         try {
@@ -91,12 +91,14 @@ export class Combat {
     })();
 
     await log(
-      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`,
+      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`
     );
     action.to.cardEffects.push(effect);
     action.from.cards.discardPile.push(action.card);
     await log(
-      `${action.to.name} has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`,
+      `${
+        action.to.name
+      } has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`
     );
     await log("-------------------\n\n\n");
   }
