@@ -92,7 +92,7 @@ export default class CombatScene extends Phaser.Scene {
         const enermy = await this.createEnermy(this, this.combat);
 
         // new Phaser.GameObjects.Rectangle();
-        
+
 
         // const platforms = this.createPlatforms()
         // this.player = this.createPlayer()
@@ -117,10 +117,17 @@ export default class CombatScene extends Phaser.Scene {
         const hand = combat.getUnitOfThisTurn().cards.hand;
         console.log(hand);
         const cards: Phaser.GameObjects.Rectangle[] = [];
-        for(let i = 0; i < hand.length; i++) {
+        for (let i = 0; i < hand.length; i++) {
             const rect = this.add.rectangle(200 + 74 * i, 550, 74, 148, 0x6666ff);
             rect.setStrokeStyle(4, 0xefc53f);
+            rect.setInteractive();
+            this.input.setDraggable(rect);
+            this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+                gameObject.x = dragX;
+                gameObject.y = dragY;
+            });
             cards.push(rect);
+            console.log(rect);
         }
         return new Phaser.GameObjects.Group(scene, cards)
     }
