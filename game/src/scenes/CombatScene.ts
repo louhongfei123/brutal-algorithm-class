@@ -5,6 +5,7 @@ import { Card } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 import { log } from "../logic/logger";
 import * as csp from "../lib/csp";
+import { Body } from 'matter';
 
 
 const GROUND_KEY = 'ground'
@@ -90,6 +91,28 @@ export default class CombatScene extends Phaser.Scene {
         await this.combat.onStateChange().pop();
         const handCards = await this.createHandCards(this, this.combat);
         const enermy = await this.createEnermy(this, this.combat);
+        console.log(93, handCards.children.entries[0], enermy);
+
+        const star = this.physics.add.image(300, 300, STAR_KEY);
+        star.setInteractive();
+        this.input.setDraggable(star);
+
+        // const handCardsBody = new Phaser.Physics.Arcade.Body(this.physics.world,  handCards.children.entries[0]);
+
+        // this.physics.world.on('overlap', () => {
+        //     console.log("WTF");
+        // })
+        // this.physics.add.overlap(handCards.children[0], enermy, function (handCards, enermy) {
+        //     console.log("overlap!");
+        // });
+
+        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        });
+        console.log('WTFF');
+        star.setCollideWorldBounds(true);
+
 
         // new Phaser.GameObjects.Rectangle();
 
@@ -122,10 +145,6 @@ export default class CombatScene extends Phaser.Scene {
             rect.setStrokeStyle(4, 0xefc53f);
             rect.setInteractive();
             this.input.setDraggable(rect);
-            this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-                gameObject.x = dragX;
-                gameObject.y = dragY;
-            });
             cards.push(rect);
             console.log(rect);
         }
@@ -133,8 +152,11 @@ export default class CombatScene extends Phaser.Scene {
     }
 
     async createEnermy(scene: Phaser.Scene, combat: Combat): Promise<Phaser.GameObjects.Rectangle> {
-        const hand = combat.getOpponent();
-        return this.add.rectangle(600, 250, 74, 148, 0x6666ff);
+        // const enermy = combat.getOpponent();
+        const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);
+        enermy.setInteractive();
+        this.input.setDraggable(enermy);
+        return enermy
     }
     update() {
         // if (this.gameOver) {
@@ -161,66 +183,66 @@ export default class CombatScene extends Phaser.Scene {
         // }
     }
 
-    createPlatforms() {
-        const platforms = this.physics.add.staticGroup()
+    // createPlatforms() {
+    //     const platforms = this.physics.add.staticGroup()
 
-        platforms.create(400, 568, GROUND_KEY).setScale(2).refreshBody()
+    //     platforms.create(400, 568, GROUND_KEY).setScale(2).refreshBody()
 
-        platforms.create(600, 400, GROUND_KEY)
-        platforms.create(50, 250, GROUND_KEY)
-        platforms.create(750, 220, GROUND_KEY)
-        return platforms
-    }
+    //     platforms.create(600, 400, GROUND_KEY)
+    //     platforms.create(50, 250, GROUND_KEY)
+    //     platforms.create(750, 220, GROUND_KEY)
+    //     return platforms
+    // }
 
-    createPlayer() {
-        const player = this.physics.add.sprite(100, 450, DUDE_KEY)
-        player.setBounce(0.2)
-        player.setCollideWorldBounds(true)
+    // createPlayer() {
+    //     const player = this.physics.add.sprite(100, 450, DUDE_KEY)
+    //     player.setBounce(0.2)
+    //     player.setCollideWorldBounds(true)
 
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers(DUDE_KEY, { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        })
+    //     this.anims.create({
+    //         key: 'left',
+    //         frames: this.anims.generateFrameNumbers(DUDE_KEY, { start: 0, end: 3 }),
+    //         frameRate: 10,
+    //         repeat: -1
+    //     })
 
-        this.anims.create({
-            key: 'turn',
-            frames: [{ key: DUDE_KEY, frame: 4 }],
-            frameRate: 20
-        })
+    //     this.anims.create({
+    //         key: 'turn',
+    //         frames: [{ key: DUDE_KEY, frame: 4 }],
+    //         frameRate: 20
+    //     })
 
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers(DUDE_KEY, { start: 5, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        })
-        return player;
-    }
+    //     this.anims.create({
+    //         key: 'right',
+    //         frames: this.anims.generateFrameNumbers(DUDE_KEY, { start: 5, end: 8 }),
+    //         frameRate: 10,
+    //         repeat: -1
+    //     })
+    //     return player;
+    // }
 
-    createStars() {
-        const stars = this.physics.add.group({
-            key: STAR_KEY,
-            repeat: 12,
-            setXY: { x: 12, y: 0, stepX: 70 }
-        })
+    // createStars() {
+    //     const stars = this.physics.add.group({
+    //         key: STAR_KEY,
+    //         repeat: 12,
+    //         setXY: { x: 12, y: 0, stepX: 70 }
+    //     })
 
-        stars.children.iterate((child) => {
-            // @ts-ignore
-            child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8))
-        })
+    //     stars.children.iterate((child) => {
+    //         // @ts-ignore
+    //         child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8))
+    //     })
 
-        return stars
-    }
+    //     return stars
+    // }
 
-    hitBomb(player, bomb) {
-        this.physics.pause()
+    // hitBomb(player, bomb) {
+    //     this.physics.pause()
 
-        player.setTint(0xff0000)
+    //     player.setTint(0xff0000)
 
-        player.anims.play('turn')
+    //     player.anims.play('turn')
 
-        this.gameOver = true
-    }
+    //     this.gameOver = true
+    // }
 }
