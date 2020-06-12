@@ -12,16 +12,10 @@ const STAR_KEY = "star";
 const BOMB_KEY = "bomb";
 
 export default class CombatScene extends Phaser.Scene {
-  // @ts-ignore
-  player: Phaser.Physics.Arcade.Sprite;
-  // @ts-ignore
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  scoreLabel;
-  stars;
-  // @ts-ignore
-  bombSpawner: BombSpawner;
   gameOver = false;
   combat: Combat;
+  // @ts-expect-error
+  enermy: Phaser.GameObjects.GameObject;
 
   userAction = new csp.UnbufferredChannel<Action>();
 
@@ -144,8 +138,12 @@ export default class CombatScene extends Phaser.Scene {
     scene: Phaser.Scene,
     combat: Combat,
   ): Promise<Phaser.GameObjects.Rectangle> {
+    if (this.enermy) {
+      this.enermy.destroy();
+    }
     // const enermy = combat.getOpponent();
     const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);
+    this.enermy = enermy;
     enermy.setInteractive();
     this.input.setDraggable(enermy);
     this.physics.add.existing(enermy);
