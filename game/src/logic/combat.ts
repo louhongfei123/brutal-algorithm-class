@@ -64,10 +64,10 @@ export class Combat {
         if (unit.cards.drawPile.length === 0) {
           unit.shuffle();
         }
-        console.log(JSON.stringify(unit, null, 1));
+        // console.log(JSON.stringify(unit, null, 1));
         console.log(unit.cards.hand);
         const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
-        this.stateChange.put(this);
+        await this.stateChange.put(this);
         console.log("failedToDraw", failedToDraw);
         console.log(unit.cards.hand);
         const action = await unit.takeAction({

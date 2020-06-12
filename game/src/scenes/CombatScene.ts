@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { AIUnit, MainCharactor } from "../logic/unit";
 import * as card from "../logic/card";
-import { Card } from "../logic/interfaces";
+import { Card, Action } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 import { log } from "../logic/logger";
 import * as csp from "../lib/csp";
@@ -24,6 +24,9 @@ export default class CombatScene extends Phaser.Scene {
     bombSpawner: BombSpawner
     gameOver = false
     combat: Combat
+
+    userAction = new csp.UnbufferredChannel<Action>();
+
     constructor() {
         super('game-scene')
 
@@ -66,8 +69,11 @@ export default class CombatScene extends Phaser.Scene {
                     new card.Health(5),
                 ],
             },
-            new csp.UnbufferredChannel<string>(),
-            userControlFunctions,
+            // new csp.UnbufferredChannel<string>(),
+            // userControlFunctions,
+            {
+                actions: this.userAction
+            }
         );
         // Start the campagin
         this.combat = new Combat(mainC, robber1);
@@ -94,12 +100,19 @@ export default class CombatScene extends Phaser.Scene {
         // console.log(93, handCards.children.entries[0], enermy);
 
         // let overlapping = false;
-        this.physics.add.overlap(handCards, enermy, (handCards, enermy) => {
+        this.physics.add.overlap(handCards, enermy, async (handCard, enermy) => {
             // console.log("overlap! 2");
             // overlapping = true;
             let pointer = this.input.activePointer;
             if(!pointer.isDown) {
-                let action = {}
+                // submit an action to the combat.
+                let action: Action = {
+                    from: this.combat.getUnitOfThisTurn(),
+                    to: this.combat.getOpponent(),
+                    card: handCard.getData('model')
+                }
+                console.log(action);
+                await this.userAction.put(action);
             }
         });
 
@@ -121,7 +134,8 @@ export default class CombatScene extends Phaser.Scene {
             rect.setInteractive();
             this.input.setDraggable(rect);
             cards.push(rect);
-            console.log(rect);
+            rect.setData('model', hand[i]);
+            // console.log(rect);
             this.physics.add.existing(rect);
         }
         return new Phaser.GameObjects.Group(scene, cards)

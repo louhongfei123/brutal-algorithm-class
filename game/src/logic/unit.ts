@@ -1,17 +1,23 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
 import { Unit, CardInit, CombatState, Action } from "./interfaces";
+import { Actions } from 'phaser';
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;
+}
+
+export interface UserCommunications {
+  actions: csp.Channel<Action>
 }
 
 export class MainCharactor extends Unit {
   constructor(
     public name: string,
     cards: CardInit,
-    public choiceChan: csp.Channel<string>,
-    public userControlFunctions: UserControlFunctions,
+    // public choiceChan: csp.Channel<string>,
+    // public userControlFunctions: UserControlFunctions,
+    private userCommunications: UserCommunications
   ) {
     super(name, cards);
   }
@@ -34,31 +40,40 @@ export class MainCharactor extends Unit {
     //     }
     //   }
     // })();
-    const choice = await this.userControlFunctions.getChoiceFromUser();
-    console.debug("userControlFunctions.getChoiceFromUser", choice);
+    console.log('main charactor needs to take action');
+    // const choice = await this.userControlFunctions.getChoiceFromUser();
+    // console.debug("userControlFunctions.getChoiceFromUser", choice);
+    
 
-    const targetUnit = await (async () => {
-      while (true) {
-        await log(`Please choose the target`);
-        await log(`1. ${this.name}`);
-        await log(`2. ${combatState.opponent.name}`);
-        const choice = await getChoiceFromUser(this.choiceChan);
-        if (choice === "1") {
-          return this;
-        } else if (choice === "2") {
-          return combatState.opponent;
-        } else {
-          await log(`${choice} is an invalid choice, please choose again`);
-        }
-      }
-    })();
+    // const targetUnit = await (async () => {
+    //   while (true) {
+    //     await log(`Please choose the target`);
+    //     await log(`1. ${this.name}`);
+    //     await log(`2. ${combatState.opponent.name}`);
+    //     const choice = await getChoiceFromUser(this.choiceChan);
+    //     if (choice === "1") {
+    //       return this;
+    //     } else if (choice === "2") {
+    //       return combatState.opponent;
+    //     } else {
+    //       await log(`${choice} is an invalid choice, please choose again`);
+    //     }
+    //   }
+    // })();
 
-    await csp.sleep(400);
-    return {
-      from: this,
-      to: targetUnit,
-      card: this.cards.hand[Number(choice) - 1],
-    };
+    const action = await this.userCommunications.actions.pop();
+    if(!action) {
+      throw new Error('unreachable');
+    }
+    console.log('game logic received', action);
+    return action;
+
+    // await csp.sleep(400);
+    // return {
+    //   from: this,
+    //   to: targetUnit,
+    //   card: this.cards.hand[Number(choice) - 1],
+    // };
   }
 }
 
