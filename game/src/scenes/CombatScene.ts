@@ -136,9 +136,10 @@ export default class CombatScene extends Phaser.Scene {
       const cardContainer = this.add.container(200 + width * i, 550);
       const rect = this.add.rectangle(0, 0, width, 148, 0x6666ff);
       rect.setStrokeStyle(4, 0xefc53f);
-      const text = this.add.text(0, 0, hand[i].name);
+      const text = this.add.text(-35, -65, hand[i].name);
       cardContainer.add(rect);
       cardContainer.add(text);
+      cardContainer.setSize(rect.width, rect.height);
 
       console.log(cardContainer);
       cardContainer.setInteractive();
