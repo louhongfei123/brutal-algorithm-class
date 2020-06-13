@@ -83,6 +83,7 @@ export default class CombatScene extends Phaser.Scene {
 
   async gameControlLoop(combat: Combat) {
     while (true) {
+
       await csp.select(
         [
           [combat.participantA.waitForTurn(), async (state) => {
@@ -108,8 +109,28 @@ export default class CombatScene extends Phaser.Scene {
               }
             );
           }],
-          [combat.participantB.waitForTurn(), async() => {
-            console.log("enermy turn");
+          [combat.participantB.waitForTurn(), async () => {
+            const action = await combat.participantB.observeActionTaken();
+            // todo: render a card attack animation
+            // https://phaser.io/examples
+            console.log("enermy turn", action);
+            const enermy = await this.refreshEnermy(this, this.combat);
+            this.physics.moveToObject(enermy, this.input.mousePointer, 60, 1000)
+            // @ts-ignore
+            const body: Phaser.Physics.Arcade.Body = enermy.body
+
+            // https://photonstorm.github.io/phaser3-docs/Phaser.Physics.Arcade.ArcadePhysics.html#moveTo__anchor
+            // moveTo moves to the direction indefinitely without stop.
+            // https://phaser.io/examples/v3/view/physics/arcade/move-and-stop-at-position
+            // todo: need to check distance and stop
+            this.physics.moveToObject(enermy, {x: 100, y: 100}, 200);
+            while (true) {
+              await csp.sleep(1000);
+              console.log(body.speed, body.position);
+              if (body.speed === 0) {
+                return;
+              }
+            }
           }]
         ]
       );
@@ -131,14 +152,14 @@ export default class CombatScene extends Phaser.Scene {
       // create a container
       const width = 90;
       const cardContainer = this.add.container(200 + width * i, 550);
-      
+
       // create children of the container
       const rect = this.add.rectangle(0, 0, width, 148, 0x6666ff);
       rect.setStrokeStyle(4, 0xefc53f);
       const text = this.add.text(-35, -65, hand[i].name);
       cardContainer.add(rect);
       cardContainer.add(text);
-      
+
       // make the container interactive
       cardContainer.setSize(rect.width, rect.height);
       cardContainer.setInteractive();
@@ -167,5 +188,5 @@ export default class CombatScene extends Phaser.Scene {
     this.physics.add.existing(enermy);
     return enermy;
   }
-  update() {}
+  update() { }
 }

@@ -12,6 +12,7 @@ export interface UserCommunications {
 
 export class MainCharactor extends Unit {
   readonly myTurn: csp.Channel<undefined> = new csp.UnbufferredChannel();
+  readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
   constructor(
     public name: string,
     cards: CardInit,
@@ -22,6 +23,7 @@ export class MainCharactor extends Unit {
     super(name, cards);
   }
 
+  // This function communicates with the Combat and user.
   async takeAction(combatState: CombatState): Promise<Action> {
     console.log("main charactor needs to take action");
     await this.myTurn.put(undefined);
@@ -30,32 +32,53 @@ export class MainCharactor extends Unit {
       throw new Error("unreachable");
     }
     console.log("game logic received", action);
+    // this.actionTaken.put(action);
     return action;
   }
 
   waitForTurn() {
     return this.myTurn;
   }
+
+  // This function communicates with any outside system other than the Combat
+  // that is interested to observe action taken by this unit.
+  async observeActionTaken(): Promise<Action> {
+    const action = await this.actionTaken.pop();
+    if(!action) {
+      throw new Error("unreachable");
+    }
+    return action;
+  }
 }
 
 export class AIUnit extends Unit {
   readonly chan = csp.chan<undefined>();
+  readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
   constructor(public name: string, cards: CardInit) {
     super(name, cards);
   }
   async takeAction(combatState: CombatState): Promise<Action> {
-    log("AI is taking actions");
-    await csp.sleep(1000);
+    await log("AI is taking actions");
     await this.chan.put(undefined);
-    return {
+    const action = {
       from: this,
       to: combatState.opponent,
-      card: this.cards.hand[0],
+      card: this.cards.hand[0], // todo: random choose
     };
+    await this.actionTaken.put(action);
+    return action;
   }
 
   // There is no need to wait for AI.
   waitForTurn() {
     return this.chan;
+  }
+
+  async observeActionTaken(): Promise<Action> {
+    const action = await this.actionTaken.pop();
+    if(!action) {
+      throw new Error("unreachable");
+    }
+    return action;
   }
 }

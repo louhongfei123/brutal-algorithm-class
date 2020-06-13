@@ -89,6 +89,8 @@ export abstract class Unit {
   // resolves when it is this unit's turn
   abstract waitForTurn(): csp.Channel<undefined>;
 
+  abstract async observeActionTaken(): Promise<Action>;
+
   // Draw n cards from draw pile to hand.
   // It turns the number of card that failed to be drawn.
   draw(n: number): number {
