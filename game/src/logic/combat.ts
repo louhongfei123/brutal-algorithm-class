@@ -8,6 +8,7 @@ export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
   private stateChange = new csp.UnbufferredChannel<CombatState>();
   private multicaster = new csp.Multicaster<CombatState>(this.stateChange);
+  private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
   constructor(public participantA: Unit, public participantB: Unit) {}
 
@@ -76,17 +77,25 @@ export class Combat {
           `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
         );
 
-        try {
-          return { effect: action.card.effect(action), action };
-        } catch (e) {
-          // This is not a valid action.
-          await log(e.message);
-          await log("please choose again\n");
+        let ret = (async function() {
+          try {
+            return { effect: action.card.effect(action), action };
+          } catch (e) {
+            // This is not a valid action.
+            await log(e.message);
+            await log("please choose again\n");
+            // continue;
+            return undefined;
+          }
+        })();
+        if(!ret) {
           continue;
         }
+
         // This is a valid action, the card has been exercised.
         // Move the card from hand to discard pile.
-        unit.moveToDiscardFromHand(action.card); // todo: something wrong here
+        
+        return ret;
       }
     })();
 
@@ -94,7 +103,7 @@ export class Combat {
       `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`
     );
     action.to.cardEffects.push(effect);
-    action.from.cards.discardPile.push(action.card);
+    unit.moveToDiscardFromHand(action.card); // todo: something wrong here
     await log(
       `${
         action.to.name
@@ -114,11 +123,14 @@ export class Combat {
       //   const unitStatusDelta = action.card.effect(action.to);
       this.changeTurn();
       winner = this.hasWinner();
-      await csp.sleep(233);
     }
     log(`${winner.name} is the Winner!`);
-
+    await this.waitForWinnerChan.put(winner);
     this.loot(winner, this.getLooser());
+  }
+
+  waitForWinner(): csp.Channel<Unit> {
+    return this.waitForWinnerChan;
   }
 
   // Winner can loot 1 card from the looser

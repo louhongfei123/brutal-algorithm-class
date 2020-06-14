@@ -35,7 +35,7 @@ export class Attack2 implements Card {
 }
 
 export class Attack3 implements Card {
-  name = Attack2.name;
+  name = Attack3.name;
   kind = CardCategory.NormalCard;
   constructor() {}
   effect(input: EffectArguments): CardEffect {

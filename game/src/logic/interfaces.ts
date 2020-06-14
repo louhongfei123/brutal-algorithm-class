@@ -113,6 +113,7 @@ export abstract class Unit {
   }
 
   moveToDiscardFromHand(card: Card) {
+    console.log(this.cards.hand, this.cards.discardPile);
     for (let [i, c] of this.cards.hand.entries()) {
       if (c === card) {
         const [card2, newHand] = math.popFrom(this.cards.hand, i);
@@ -121,6 +122,7 @@ export abstract class Unit {
         }
         this.cards.hand = newHand;
         this.cards.discardPile.push(card2);
+        console.log(this.cards.hand, this.cards.discardPile);
         return;
       }
     }

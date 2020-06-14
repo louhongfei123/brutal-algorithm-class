@@ -51,7 +51,7 @@ export default class CombatScene extends Phaser.Scene {
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: [new card.Attack1(), new card.Attack1(), new card.Heal()],
+        drawPile: [new card.Attack3(), new card.Attack3(), new card.Heal()],
         equipped: [new card.Health(5)],
       },
       // new csp.UnbufferredChannel<string>(),
@@ -135,6 +135,14 @@ export default class CombatScene extends Phaser.Scene {
             );
             await csp.sleep(1000);
             cardPlayedByEnermy.destroy();
+          }],
+          [combat.waitForWinner(), async (unit) => {
+            // console.log("winner", unit);
+            // render
+            const text = unit === combat.participantA ?
+              this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
+            text.setFontSize(70);
+            text.setOrigin(0.5)
           }]
         ]
       );
@@ -179,7 +187,7 @@ export default class CombatScene extends Phaser.Scene {
     }
     this.handCards = [];
 
-    const hand = combat.getUnitOfThisTurn().cards.hand;
+    const hand = combat.participantA.cards.hand;
     for (let i = 0; i < hand.length; i++) {
       const cardContainer = this.renderCard(hand[i], 200 + this.cardWidth * i, 550, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();
