@@ -40,8 +40,8 @@ export abstract class EquippmentCard implements Card {
 }
 
 export interface Action extends EffectArguments {
-  //   from: Unit;
-  //   to: Unit;
+  from: Unit;
+  to: Unit;
   card: Card;
 }
 
@@ -148,7 +148,7 @@ export abstract class Unit {
 
 todos
 
-I probably need a deque implementation that represents a deck of cards 
+I probably need a deque implementation that represents a deck of cards
 that can insert and remove cards from/to top, bottom, and random middle place of the deque.
 
 Probably time to write some reproducible tests. Currently there are 488 lines of code.

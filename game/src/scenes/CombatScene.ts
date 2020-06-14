@@ -5,6 +5,7 @@ import { Card, Action } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 import { log } from "../logic/logger";
 import * as csp from "../lib/csp";
+import * as physics from "../physics";
 
 const GROUND_KEY = "ground";
 const DUDE_KEY = "dude";
@@ -115,26 +116,47 @@ export default class CombatScene extends Phaser.Scene {
             // https://phaser.io/examples
             console.log("enermy turn", action);
             const enermy = await this.refreshEnermy(this, this.combat);
-            this.physics.moveToObject(enermy, this.input.mousePointer, 60, 1000)
             // @ts-ignore
             const body: Phaser.Physics.Arcade.Body = enermy.body
-
-            // https://photonstorm.github.io/phaser3-docs/Phaser.Physics.Arcade.ArcadePhysics.html#moveTo__anchor
-            // moveTo moves to the direction indefinitely without stop.
-            // https://phaser.io/examples/v3/view/physics/arcade/move-and-stop-at-position
-            // todo: need to check distance and stop
-            this.physics.moveToObject(enermy, {x: 100, y: 100}, 200);
-            while (true) {
-              await csp.sleep(1000);
-              console.log(body.speed, body.position);
-              if (body.speed === 0) {
-                return;
-              }
-            }
+            const cardPlayedByEnermy = this.renderCard(
+              action.card,
+              enermy.x,
+              enermy.y,
+              enermy.width,
+              enermy.height)
+            await physics.moveTo(
+              this,
+              cardPlayedByEnermy,
+              { x: 400, y: 150 }, 
+              200
+            );
+            await csp.sleep(10000);
+            console.log(2);
           }]
         ]
       );
     }
+  }
+
+  renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
+      // create a container
+      const color = 0x6666ff;
+      const cardContainer = this.add.container(x, y);
+
+      // create children of the container
+      const rect = this.add.rectangle(0, 0, width, height, color);
+      rect.setStrokeStyle(4, 0xefc53f);
+      const text = this.add.text(-35, -65, card.name);
+      cardContainer.add(rect);
+      cardContainer.add(text);
+
+      // make the container interactive
+      cardContainer.setSize(rect.width, rect.height);
+
+      // add the container to the physics system
+      this.physics.add.existing(cardContainer);
+      cardContainer.setData("model", card);
+      return cardContainer;
   }
 
   async refreshHandCards(
@@ -149,25 +171,11 @@ export default class CombatScene extends Phaser.Scene {
 
     const hand = combat.getUnitOfThisTurn().cards.hand;
     for (let i = 0; i < hand.length; i++) {
-      // create a container
       const width = 90;
-      const cardContainer = this.add.container(200 + width * i, 550);
-
-      // create children of the container
-      const rect = this.add.rectangle(0, 0, width, 148, 0x6666ff);
-      rect.setStrokeStyle(4, 0xefc53f);
-      const text = this.add.text(-35, -65, hand[i].name);
-      cardContainer.add(rect);
-      cardContainer.add(text);
-
-      // make the container interactive
-      cardContainer.setSize(rect.width, rect.height);
+      const height = 148;
+      const cardContainer = this.renderCard(hand[i], 200 + width * i, 550, width, height);
       cardContainer.setInteractive();
       this.input.setDraggable(cardContainer);
-
-      // add the container to the physics system
-      this.physics.add.existing(cardContainer);
-      cardContainer.setData("model", hand[i]);
       this.handCards.push(cardContainer);
     }
     return new Phaser.GameObjects.Group(scene, this.handCards);
