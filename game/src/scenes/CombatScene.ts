@@ -16,7 +16,7 @@ export default class CombatScene extends Phaser.Scene {
   gameOver = false;
   combat: Combat;
   // @ts-expect-error
-  enermy: Phaser.GameObjects.GameObject;
+  enermyContainer: Phaser.GameObjects.GameObject;
   // @ts-expect-error
   playerContainer: Phaser.GameObjects.Container;
   handCards: Phaser.GameObjects.GameObject[] = [];
@@ -30,7 +30,7 @@ export default class CombatScene extends Phaser.Scene {
 
     const robber1 = new AIUnit("强盗1", {
       drawPile: [new card.Attack2(), new card.Attack2()],
-      equipped: [new card.Health(1)],
+      equipped: [new card.Health(3)],
     });
     const robber2 = new AIUnit("强盗2", {
       drawPile: [
@@ -93,35 +93,32 @@ export default class CombatScene extends Phaser.Scene {
       await csp.select(
         [
           [combat.participantA.waitForTurn(), async (state) => {
-            const handCards = await this.refreshHandCards(this, this.combat);
-            const enermy = await this.refreshEnermy(this, this.combat);
-            await this.refreshPlayer(this, this.combat);
-            const overlapCollider = this.physics.add.overlap(
-              handCards,
-              enermy,
-              async (handCard, enermy) => {
-                let pointer = this.input.activePointer;
-                if (!pointer.isDown) {
-                  // submit an action to the combat.
-                  let action: Action = {
-                    from: this.combat.getUnitOfThisTurn(),
-                    to: this.combat.getOpponent(),
-                    card: handCard.getData("model"),
-                  };
-                  console.log(action);
-                  handCard.destroy();
-                  await this.userAction.put(action);
-                  overlapCollider.destroy();
-                }
+            const [handCards, enermy, player] = await this.refresh();
+            const overlapListener = async (handCard, target) => {
+              let pointer = this.input.activePointer;
+              if (!pointer.isDown) {
+                // submit an action to the combat.
+                let action: Action = {
+                  from: this.combat.getUnitOfThisTurn(),
+                  to: target.getData("model"),
+                  card: handCard.getData("model"),
+                };
+                console.log(action);
+                handCard.destroy();
+                overlapCollider1.destroy();
+                overlapCollider2.destroy();
+                await this.userAction.put(action);
               }
-            );
+            }
+            const overlapCollider1 = this.physics.add.overlap(handCards, enermy, overlapListener);
+            const overlapCollider2 = this.physics.add.overlap(handCards, player, overlapListener);
           }],
           [combat.participantB.waitForTurn(), async () => {
+            const [handCards, enermy, player] = await this.refresh();
             const action = await combat.participantB.observeActionTaken();
             // todo: render a card attack animation
             // https://phaser.io/examples
             console.log("enermy turn", action);
-            const enermy = await this.refreshEnermy(this, this.combat);
             // @ts-ignore
             const body: Phaser.Physics.Arcade.Body = enermy.body
             const cardPlayedByEnermy = this.renderCard(
@@ -142,6 +139,13 @@ export default class CombatScene extends Phaser.Scene {
         ]
       );
     }
+  }
+
+  async refresh() {
+    const handCards = await this.refreshHandCards(this, this.combat);
+    const enermy = await this.refreshEnermy(this, this.combat);
+    const player = await this.refreshPlayer(this, this.combat);
+    return [handCards, enermy, player]
   }
 
   renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
@@ -188,25 +192,46 @@ export default class CombatScene extends Phaser.Scene {
   async refreshEnermy(
     scene: Phaser.Scene,
     combat: Combat
-  ): Promise<Phaser.GameObjects.Image> {
-    if (this.enermy) {
-      this.enermy.destroy();
+  ): Promise<Phaser.GameObjects.Container> {
+    if (this.enermyContainer) {
+      this.enermyContainer.destroy();
     }
-    const enermy = this.add.image(650, 250, "girl_1");
+    const container = this.add.container(650, 250);
+
+    // Add enermy image
+    const enermy = this.add.image(0, 0, "girl_1");
     enermy.setScale(0.3);
-    const text = this.add.text(600, 75, "敌人");
+
+    // Add enermy text
+    const text = this.add.text(50, -75, combat.participantB.name);
     text.setFontSize(35);
-    
-    this.physics.add.existing(enermy);
-    this.enermy = enermy;
-    return enermy;
+
+    // Display enermy health point
+    const health = combat.participantB.getHealth();
+    const healthLimit = combat.participantB.getHealthLimit();
+    const healthText = this.add.text(
+      -enermy.width * enermy.scale / 4,
+      -enermy.height * enermy.scale / 1.5,
+      `${health}/${healthLimit}`
+    );
+    healthText.setFontSize(50);
+
+    // Add parts to the container
+    container.add(enermy)
+    container.add(text)
+    container.add(healthText)
+    container.setData("model", combat.participantB);
+
+    this.physics.add.existing(container);
+    this.enermyContainer = container;
+    return container;
   }
 
   async refreshPlayer(
     scene: Phaser.Scene,
     combat: Combat
   ): Promise<Phaser.GameObjects.Container> {
-    if(this.playerContainer) {
+    if (this.playerContainer) {
       this.playerContainer.destroy();
     }
     const container = this.add.container(150, 250);
@@ -228,7 +253,8 @@ export default class CombatScene extends Phaser.Scene {
 
     container.add(healthText);
     container.add(player);
-    this.physics.add.existing(player);
+    container.setData("model", combat.participantA);
+    this.physics.add.existing(container);
     this.playerContainer = container;
     return container;
   }
