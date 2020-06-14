@@ -55,7 +55,7 @@ export class FollowUpAttack implements Card {
   effect(input: EffectArguments): CardEffect {
     if (input.from.cards.discardPile.length === 0) {
       throw new Error(
-        "FoolowUpAttack: There is no card on the top of discard pile"
+        "FollowUpAttack: There is no card on the top of discard pile"
       );
     }
     // console.log(JSON.stringify(input.from.cards.discardPile));

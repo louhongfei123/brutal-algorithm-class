@@ -1,6 +1,7 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
 import { Unit, CardInit, CombatState, Action } from "./interfaces";
+import * as math from './math';
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;
@@ -63,7 +64,7 @@ export class AIUnit extends Unit {
     const action = {
       from: this,
       to: combatState.opponent,
-      card: this.cards.hand[0], // todo: random choose
+      card: math.randomPick(this.cards.hand)
     };
     await this.actionTaken.put(action);
     return action;

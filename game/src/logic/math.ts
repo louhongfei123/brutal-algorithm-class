@@ -16,3 +16,8 @@ export function swap(array: any[], i: number, j: number) {
 export function popFrom(array: any[], i: number): [any, any[]] {
   return [array[i], array.slice(0, i).concat(array.slice(i + 1))];
 }
+
+export function randomPick(array: any[]): any {
+  let pick = Math.floor(Math.random() * array.length);
+  return array[pick];
+}

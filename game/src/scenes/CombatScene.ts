@@ -13,8 +13,8 @@ const STAR_KEY = "star";
 const BOMB_KEY = "bomb";
 
 export default class CombatScene extends Phaser.Scene {
-  gameOver = false;
-  combat: Combat;
+  combats: Combat[];
+  currentCombatIndex: number = 0;
   // @ts-expect-error
   enermyContainer: Phaser.GameObjects.GameObject;
   // @ts-expect-error
@@ -41,27 +41,21 @@ export default class CombatScene extends Phaser.Scene {
       equipped: [new card.Health(5)],
     });
 
-    const userCardSelection = new csp.UnbufferredChannel<any>();
-    const userControlFunctions = {
-      getChoiceFromUser: async function () {
-        return userCardSelection.pop();
-      },
-    };
-
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: [new card.Attack3(), new card.Attack3(), new card.Heal()],
+        drawPile: [new card.Attack3(), new card.Attack2(), new card.Heal()],
         equipped: [new card.Health(5)],
       },
-      // new csp.UnbufferredChannel<string>(),
-      // userControlFunctions,
       {
         actions: this.userAction,
       }
     );
     // Start the campagin
-    this.combat = new Combat(mainC, robber1);
+    this.combats = [
+      new Combat(mainC, robber1),
+      new Combat(mainC, robber2)
+    ]
   }
 
   preload() {
@@ -79,27 +73,27 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async create() {
-    this.combat.begin();
+    this.currentCombat().begin();
     this.add.image(400, 300, "sky");
     this.input.on("drag", function (pointer, gameObject, dragX, dragY) {
       gameObject.x = dragX;
       gameObject.y = dragY;
     });
-    this.gameControlLoop(this.combat);
+    this.gameControlLoop();
   }
 
-  async gameControlLoop(combat: Combat) {
+  async gameControlLoop() {
     while (true) {
       await csp.select(
         [
-          [combat.participantA.waitForTurn(), async (state) => {
+          [this.currentCombat().participantA.waitForTurn(), async (state) => {
             const [handCards, enermy, player] = await this.refresh();
             const overlapListener = async (handCard, target) => {
               let pointer = this.input.activePointer;
               if (!pointer.isDown) {
                 // submit an action to the combat.
                 let action: Action = {
-                  from: this.combat.getUnitOfThisTurn(),
+                  from: this.currentCombat().getUnitOfThisTurn(),
                   to: target.getData("model"),
                   card: handCard.getData("model"),
                 };
@@ -113,9 +107,9 @@ export default class CombatScene extends Phaser.Scene {
             const overlapCollider1 = this.physics.add.overlap(handCards, enermy, overlapListener);
             const overlapCollider2 = this.physics.add.overlap(handCards, player, overlapListener);
           }],
-          [combat.participantB.waitForTurn(), async () => {
+          [this.currentCombat().participantB.waitForTurn(), async () => {
             const [handCards, enermy, player] = await this.refresh();
-            const action = await combat.participantB.observeActionTaken();
+            const action = await this.currentCombat().participantB.observeActionTaken();
             // todo: render a card attack animation
             // https://phaser.io/examples
             console.log("enermy turn", action);
@@ -136,13 +130,17 @@ export default class CombatScene extends Phaser.Scene {
             await csp.sleep(1000);
             cardPlayedByEnermy.destroy();
           }],
-          [combat.waitForWinner(), async (unit) => {
+          [this.currentCombat().waitForWinner(), async (unit) => {
             // console.log("winner", unit);
             // render
-            const text = unit === combat.participantA ?
+            const text = unit === this.currentCombat().participantA ?
               this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
             text.setFontSize(70);
             text.setOrigin(0.5)
+            await csp.sleep(2000);
+            text.destroy();
+            this.currentCombatIndex++;
+            this.currentCombat().begin();
           }]
         ]
       );
@@ -150,9 +148,9 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async refresh() {
-    const handCards = await this.refreshHandCards(this, this.combat);
-    const enermy = await this.refreshEnermy(this, this.combat);
-    const player = await this.refreshPlayer(this, this.combat);
+    const handCards = await this.refreshHandCards(this, this.currentCombat());
+    const enermy = await this.refreshEnermy(this, this.currentCombat());
+    const player = await this.refreshPlayer(this, this.currentCombat());
     return [handCards, enermy, player]
   }
 
@@ -265,6 +263,10 @@ export default class CombatScene extends Phaser.Scene {
     this.physics.add.existing(container);
     this.playerContainer = container;
     return container;
+  }
+
+  currentCombat(): Combat {
+    return this.combats[this.currentCombatIndex];
   }
 
   update() { }

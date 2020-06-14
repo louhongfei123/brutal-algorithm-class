@@ -1,5 +1,5 @@
 import * as csp from "../lib/csp";
-import { Unit } from "./interfaces";
+import { Unit, CardEffect, Action } from "./interfaces";
 import { log } from "./logger";
 
 type CombatState = "taking action";
@@ -77,7 +77,7 @@ export class Combat {
           `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
         );
 
-        let ret = (async function() {
+        let ret = await (async function() {
           try {
             return { effect: action.card.effect(action), action };
           } catch (e) {
@@ -89,12 +89,9 @@ export class Combat {
           }
         })();
         if(!ret) {
+          console.log("continue");
           continue;
         }
-
-        // This is a valid action, the card has been exercised.
-        // Move the card from hand to discard pile.
-        
         return ret;
       }
     })();
