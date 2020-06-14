@@ -17,9 +17,13 @@ export default class CombatScene extends Phaser.Scene {
   combat: Combat;
   // @ts-expect-error
   enermy: Phaser.GameObjects.GameObject;
+  // @ts-expect-error
+  playerContainer: Phaser.GameObjects.Container;
   handCards: Phaser.GameObjects.GameObject[] = [];
 
   userAction = new csp.UnbufferredChannel<Action>();
+  readonly cardWidth = 90;
+  readonly cardHeight = 148;
 
   constructor() {
     super("game-scene");
@@ -65,6 +69,8 @@ export default class CombatScene extends Phaser.Scene {
     this.load.image(GROUND_KEY, "assets/platform.png");
     this.load.image(STAR_KEY, "assets/star.png");
     this.load.image(BOMB_KEY, "assets/bomb.png");
+    this.load.image("girl_1", "assets/girl_1.png");
+    this.load.image("girl_2", "assets/girl_2.png");
 
     this.load.spritesheet(DUDE_KEY, "assets/dude.png", {
       frameWidth: 32,
@@ -84,12 +90,12 @@ export default class CombatScene extends Phaser.Scene {
 
   async gameControlLoop(combat: Combat) {
     while (true) {
-
       await csp.select(
         [
           [combat.participantA.waitForTurn(), async (state) => {
             const handCards = await this.refreshHandCards(this, this.combat);
             const enermy = await this.refreshEnermy(this, this.combat);
+            await this.refreshPlayer(this, this.combat);
             const overlapCollider = this.physics.add.overlap(
               handCards,
               enermy,
@@ -122,16 +128,16 @@ export default class CombatScene extends Phaser.Scene {
               action.card,
               enermy.x,
               enermy.y,
-              enermy.width,
-              enermy.height)
+              this.cardWidth,
+              this.cardHeight)
             await physics.moveTo(
               this,
               cardPlayedByEnermy,
-              { x: 400, y: 150 }, 
+              { x: 400, y: 150 },
               200
             );
-            await csp.sleep(10000);
-            console.log(2);
+            await csp.sleep(1000);
+            cardPlayedByEnermy.destroy();
           }]
         ]
       );
@@ -139,24 +145,24 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
-      // create a container
-      const color = 0x6666ff;
-      const cardContainer = this.add.container(x, y);
+    // create a container
+    const color = 0x6666ff;
+    const cardContainer = this.add.container(x, y);
 
-      // create children of the container
-      const rect = this.add.rectangle(0, 0, width, height, color);
-      rect.setStrokeStyle(4, 0xefc53f);
-      const text = this.add.text(-35, -65, card.name);
-      cardContainer.add(rect);
-      cardContainer.add(text);
+    // create children of the container
+    const rect = this.add.rectangle(0, 0, width, height, color);
+    rect.setStrokeStyle(4, 0xefc53f);
+    const text = this.add.text(-35, -65, card.name);
+    cardContainer.add(rect);
+    cardContainer.add(text);
 
-      // make the container interactive
-      cardContainer.setSize(rect.width, rect.height);
+    // make the container interactive
+    cardContainer.setSize(rect.width, rect.height);
 
-      // add the container to the physics system
-      this.physics.add.existing(cardContainer);
-      cardContainer.setData("model", card);
-      return cardContainer;
+    // add the container to the physics system
+    this.physics.add.existing(cardContainer);
+    cardContainer.setData("model", card);
+    return cardContainer;
   }
 
   async refreshHandCards(
@@ -171,9 +177,7 @@ export default class CombatScene extends Phaser.Scene {
 
     const hand = combat.getUnitOfThisTurn().cards.hand;
     for (let i = 0; i < hand.length; i++) {
-      const width = 90;
-      const height = 148;
-      const cardContainer = this.renderCard(hand[i], 200 + width * i, 550, width, height);
+      const cardContainer = this.renderCard(hand[i], 200 + this.cardWidth * i, 550, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();
       this.input.setDraggable(cardContainer);
       this.handCards.push(cardContainer);
@@ -184,17 +188,50 @@ export default class CombatScene extends Phaser.Scene {
   async refreshEnermy(
     scene: Phaser.Scene,
     combat: Combat
-  ): Promise<Phaser.GameObjects.Rectangle> {
+  ): Promise<Phaser.GameObjects.Image> {
     if (this.enermy) {
       this.enermy.destroy();
     }
-    // const enermy = combat.getOpponent();
-    const enermy = this.add.rectangle(600, 250, 74, 148, 0x6666ff);
-    this.add.text(580, 200, "敌人");
-    this.enermy = enermy;
-    enermy.setInteractive();
+    const enermy = this.add.image(650, 250, "girl_1");
+    enermy.setScale(0.3);
+    const text = this.add.text(600, 75, "敌人");
+    text.setFontSize(35);
+    
     this.physics.add.existing(enermy);
+    this.enermy = enermy;
     return enermy;
   }
+
+  async refreshPlayer(
+    scene: Phaser.Scene,
+    combat: Combat
+  ): Promise<Phaser.GameObjects.Container> {
+    if(this.playerContainer) {
+      this.playerContainer.destroy();
+    }
+    const container = this.add.container(150, 250);
+
+    // Add player image
+    const player = this.add.image(0, 0, "girl_2");
+    player.setScale(0.3);
+    player.setInteractive();
+
+    // Display health point
+    const health = combat.participantA.getHealth();
+    const healthLimit = combat.participantA.getHealthLimit();
+    const healthText = this.add.text(
+      -player.width * player.scale / 4,
+      -player.height * player.scale / 1.8,
+      `${health}/${healthLimit}`
+    );
+    healthText.setFontSize(50);
+
+    container.add(healthText);
+    container.add(player);
+    this.physics.add.existing(player);
+    this.playerContainer = container;
+    return container;
+  }
+
   update() { }
 }
