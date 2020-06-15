@@ -46,6 +46,30 @@ export class Attack3 implements Card {
   }
 }
 
+export class Attack4 implements Card {
+  name = Attack4.name;
+  kind = CardCategory.NormalCard;
+  constructor() {}
+  effect(input: EffectArguments): CardEffect {
+    return {
+      by: this,
+      health: -4,
+    };
+  }
+}
+
+export class Attack5 implements Card {
+  name = Attack5.name;
+  kind = CardCategory.NormalCard;
+  constructor() {}
+  effect(input: EffectArguments): CardEffect {
+    return {
+      by: this,
+      health: -5,
+    };
+  }
+}
+
 export class FollowUpAttack implements Card {
   name = FollowUpAttack.name;
   desp =
@@ -65,6 +89,18 @@ export class FollowUpAttack implements Card {
     // @ts-ignore
     eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
     return eff;
+  }
+}
+
+export class QiAttack implements Card {
+  name = QiAttack.name
+  kind = CardCategory.NormalCard
+  effect(input: EffectArguments): CardEffect {
+    return {
+      by: this,
+      health: -5,
+      healthLimit: -3
+    }
   }
 }
 
@@ -89,6 +125,30 @@ export class Heal implements Card {
     };
   }
 }
+
+/////////////////////////
+// Special Effect Card //
+/////////////////////////
+export class QiFlow implements Card {
+  kind = CardCategory.NormalCard
+  name = QiFlow.name
+  effect(input: EffectArguments): CardEffect {
+    if(input.from !== input.to) {
+      throw new Error('QiFlow can only be played against self');
+    }
+    console.log(input.from.cards.drawPile);
+    const newHandCard = input.from.cards.hand.concat(
+      input.from.cards.drawPile.last()
+    )
+    return {
+      by: this,
+      handCard: newHandCard,
+      drawPile: input.from.cards.drawPile.slice(0, -1)
+    }
+  }
+}
+
+
 
 //////////////////////
 // Equippment Cards //

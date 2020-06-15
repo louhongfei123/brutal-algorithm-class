@@ -1,6 +1,7 @@
 import * as csp from "../lib/csp";
 import { Unit, CardEffect, Action } from "./interfaces";
 import { log } from "./logger";
+import * as errors from "./errors";
 
 type CombatState = "taking action";
 
@@ -64,8 +65,8 @@ export class Combat {
         if (unit.cards.drawPile.length === 0) {
           unit.shuffle();
         }
-        // console.log(JSON.stringify(unit, null, 1));
-        console.log(unit.cards.hand);
+
+        console.log('drawing', unit.cards.hand);
         const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
         await this.stateChange.put("taking action");
         console.log("failedToDraw", failedToDraw);
@@ -81,6 +82,9 @@ export class Combat {
           try {
             return { effect: action.card.effect(action), action };
           } catch (e) {
+            if(!(e instanceof errors.InvalidBehavior)) {
+              throw e;
+            }
             // This is not a valid action.
             await log(e.message);
             await log("please choose again\n");
@@ -96,16 +100,8 @@ export class Combat {
       }
     })();
 
-    await log(
-      `${action.card.name}: ${JSON.stringify(action.card.effect(action))}`
-    );
     action.to.cardEffects.push(effect);
     unit.moveToDiscardFromHand(action.card); // todo: something wrong here
-    await log(
-      `${
-        action.to.name
-      } has ${action.to.getHealth()}/${action.to.getHealthLimit()} health left`
-    );
     await log("-------------------\n\n\n");
   }
 

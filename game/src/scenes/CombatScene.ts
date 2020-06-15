@@ -3,9 +3,11 @@ import { AIUnit, MainCharactor } from "../logic/unit";
 import * as card from "../logic/card";
 import { Card, Action } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
-import { log } from "../logic/logger";
+
 import * as csp from "../lib/csp";
 import * as physics from "../physics";
+import { Deque } from "../logic/math";
+import * as units from "../units";
 
 const GROUND_KEY = "ground";
 const DUDE_KEY = "dude";
@@ -27,25 +29,20 @@ export default class CombatScene extends Phaser.Scene {
 
   constructor() {
     super("game-scene");
-
-    const robber1 = new AIUnit("强盗1", {
-      drawPile: [new card.Attack2(), new card.Attack2()],
-      equipped: [new card.Health(3)],
-    });
-    const robber2 = new AIUnit("强盗2", {
-      drawPile: [
-        new card.Attack3(),
-        new card.Attack3(),
-        new card.FollowUpAttack(),
-      ],
-      equipped: [new card.Health(5)],
-    });
-
+  
+    const drawPile = new Deque<Card>(
+      new card.Attack3(),
+      new card.Attack2(),
+      new card.Heal(),
+      new card.QiFlow()
+    );
+    console.log(drawPile);
+    drawPile.last();
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: [new card.Attack3(), new card.Attack2(), new card.Heal()],
-        equipped: [new card.Health(5)],
+        drawPile: drawPile,
+        equipped: new Deque(new card.Health(100)),
       },
       {
         actions: this.userAction,
@@ -53,8 +50,8 @@ export default class CombatScene extends Phaser.Scene {
     );
     // Start the campagin
     this.combats = [
-      new Combat(mainC, robber1),
-      new Combat(mainC, robber2)
+      new Combat(mainC, units.InternalDisciple()),
+      new Combat(mainC, units.EliteInternalDisciple())
     ]
   }
 
@@ -87,7 +84,7 @@ export default class CombatScene extends Phaser.Scene {
       await csp.select(
         [
           [this.currentCombat().participantA.waitForTurn(), async (state) => {
-            const [handCards, enermy, player] = await this.refresh();
+            const { handCards, enermy, player } = await this.refresh();
             const overlapListener = async (handCard, target) => {
               let pointer = this.input.activePointer;
               if (!pointer.isDown) {
@@ -108,7 +105,7 @@ export default class CombatScene extends Phaser.Scene {
             const overlapCollider2 = this.physics.add.overlap(handCards, player, overlapListener);
           }],
           [this.currentCombat().participantB.waitForTurn(), async () => {
-            const [handCards, enermy, player] = await this.refresh();
+            const { handCards, enermy, player } = await this.refresh();
             const action = await this.currentCombat().participantB.observeActionTaken();
             // todo: render a card attack animation
             // https://phaser.io/examples
@@ -151,7 +148,7 @@ export default class CombatScene extends Phaser.Scene {
     const handCards = await this.refreshHandCards(this, this.currentCombat());
     const enermy = await this.refreshEnermy(this, this.currentCombat());
     const player = await this.refreshPlayer(this, this.currentCombat());
-    return [handCards, enermy, player]
+    return { handCards, enermy, player }
   }
 
   renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
@@ -162,6 +159,7 @@ export default class CombatScene extends Phaser.Scene {
     // create children of the container
     const rect = this.add.rectangle(0, 0, width, height, color);
     rect.setStrokeStyle(4, 0xefc53f);
+    console.log(card.name);
     const text = this.add.text(-35, -65, card.name);
     cardContainer.add(rect);
     cardContainer.add(text);

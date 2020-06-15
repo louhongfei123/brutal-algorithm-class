@@ -1,19 +1,16 @@
 {
 	"compilerOptions": {
-		"target": "es5",
-		"module": "es6",
+		"target": "es2018",
+		"module": "CommonJS",
 		"strict": true,
 		"noImplicitAny": false,
 		"noEmit": true,
 		"allowJs": true,
-		"jsx": "preserve",
 		"importHelpers": true,
-		"moduleResolution": "node",
 		"experimentalDecorators": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
-		"baseUrl": "./src",
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"paths": {
@@ -27,7 +24,7 @@
 			"phaser"
 		],
         "lib": [
-            "ES2015",
+            // "ES2015",
 			"DOM",
 			"ES2018.AsyncIterable"
         ]

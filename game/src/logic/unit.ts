@@ -22,6 +22,7 @@ export class MainCharactor extends Unit {
     private userCommunications: UserCommunications
   ) {
     super(name, cards);
+    console.log(this.cards)
   }
 
   // This function communicates with the Combat and user.

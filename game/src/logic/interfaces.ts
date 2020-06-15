@@ -1,4 +1,5 @@
 import * as math from "./math";
+import { Deque } from "./math";
 import * as csp from "../lib/csp";
 
 export enum CardCategory {
@@ -26,6 +27,8 @@ export interface CardEffect {
   by: Card;
   health?: number;
   healthLimit?: number;
+  handCard?: Card[]
+  drawPile?: Card[]
 }
 
 export interface NormalCard extends Card {
@@ -51,25 +54,25 @@ export interface CombatState {
 
 export interface CardInit {
   // 抽牌堆
-  drawPile: Card[];
+  drawPile: math.Deque<Card>;
   // 已装备的牌
-  equipped: EquippmentCard[];
+  equipped: math.Deque<EquippmentCard>;
 }
 
 export interface CardsOfUnit extends CardInit {
   // 手牌
-  hand: Card[];
+  hand: math.Deque<Card>;
   // 弃牌堆
-  discardPile: Card[];
+  discardPile: math.Deque<Card>;
 }
 
 export abstract class Unit {
   public cardEffects: CardEffect[] = [];
   public cards: CardsOfUnit = {
-    hand: [],
-    equipped: [],
-    drawPile: [],
-    discardPile: [],
+    hand: new math.Deque(),
+    equipped: new math.Deque(),
+    drawPile: new math.Deque(),
+    discardPile: new math.Deque(),
   };
 
   constructor(public name: string, cards: CardInit) {
@@ -108,7 +111,7 @@ export abstract class Unit {
   shuffle() {
     console.log(`${this.name} shuffles`);
     this.cards.drawPile = this.cards.discardPile;
-    this.cards.discardPile = [];
+    this.cards.discardPile = new Deque();
     math.shuffle(this.cards.drawPile);
   }
 
@@ -120,6 +123,7 @@ export abstract class Unit {
         if (card2 !== card) {
           throw new Error("unreachable");
         }
+        // @ts-ignore
         this.cards.hand = newHand;
         this.cards.discardPile.push(card2);
         console.log(this.cards.hand, this.cards.discardPile);

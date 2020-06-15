@@ -13,11 +13,20 @@ export function swap(array: any[], i: number, j: number) {
   array[j] = temp;
 }
 
-export function popFrom(array: any[], i: number): [any, any[]] {
+export function popFrom<T>(array: T[], i: number): [T, T[]] {
   return [array[i], array.slice(0, i).concat(array.slice(i + 1))];
 }
 
 export function randomPick(array: any[]): any {
   let pick = Math.floor(Math.random() * array.length);
   return array[pick];
+}
+
+export class Deque<T> extends Array<T> {
+  first(): T {
+    return this[0]
+  }
+  last(): T {
+    return this[this.length - 1]
+  }
 }
