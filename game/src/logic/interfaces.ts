@@ -65,150 +65,23 @@ export interface CardInit {
   readonly equipped: math.Deque<EquippmentCard>;
 }
 
-export abstract class Unit {
-  public cardEffects: Deque<CardEffect> = new Deque();
-
-  constructor(
-    public name: string,
-    protected readonly cards: CardInit
-  ) {
-
-    // apply effects of equippments
-    for (let card of cards.equipped) {
-      const effect = card.effect({
-        from: this,
-        to: this,
-      });
-      if (effect instanceof InvalidBehavior) {
-        throw effect
-      }
-      this.cardEffects.push(effect.to);
-    }
-  }
-
-  // assertEffectsValidity() {
-  //   const effects = this.cardEffects
-  //   let hand = new Deque();
-  //   let draw = this.cards.drawPile;
-  //   let discard = new Deque();
-  //   for (let effect of effects) {
-  //     if (effect.handCard && effect.handCard.length !== hand.length - 1) {
-  //       console.log(effect);
-  //       throw new Error();
-  //     }
-  //     if (effect.discardPile && effect.discardPile.length !== discard.length + 1) {
-  //       throw new Error();
-  //     }
-  //     if (
-  //       effect.discardPile &&
-  //       effect.handCard &&
-  //       effect.drawPile &&
-  //       effect.discardPile.length + effect.handCard.length + effect.drawPile.length !==
-  //       discard.length + hand.length + draw.length
-  //     ) {
-  //       throw new Error();
-  //     }
-  //     hand = effect.handCard? effect.handCard: hand;
-  //     draw = effect.drawPile? effect.drawPile: draw;
-  //     discard = effect.discardPile? effect.discardPile: discard;
-  //   }
-  // }
-
-  abstract async takeAction(combatState: CombatState): Promise<Action>;
-
+export interface Unit {
+  cardEffects: Deque<CardEffect>;
+  name: string
+  takeAction(combatState: CombatState): Promise<Action>;
   // resolves when it is this unit's turn
-  abstract waitForTurn(): csp.Channel<undefined>;
-
-  abstract async observeActionTaken(): Promise<Action>;
-
-  // Move all cards in the discard pile to the draw pile and shuffle it.
-  // shuffle() {
-  //   console.log(`${this.name} shuffles`);
-  //   this.cards.drawPile = this.cards.discardPile;
-  //   this.cards.discardPile = new Deque();
-  //   math.shuffle(this.cards.drawPile);
-  // }
-
-  // moveToDiscardFromHand(card: Card) {
-  //   console.log(this.cards.hand, this.cards.discardPile);
-  //   for (let [i, c] of this.cards.hand.entries()) {
-  //     if (c === card) {
-  //       const [card2, newHand] = math.popFrom(this.cards.hand, i);
-  //       if (card2 !== card) {
-  //         throw new Error("unreachable");
-  //       }
-  //       // @ts-ignore
-  //       this.cards.hand = newHand;
-  //       this.cards.discardPile.push(card2);
-  //       console.log(this.cards.hand, this.cards.discardPile);
-  //       return;
-  //     }
-  //   }
-  //   throw new Error(`card: ${card} does not exist in hand`);
-  // }
-
-  private reduceCurrentState(name: string): Deque<Card> | undefined {
-    let history = this.cardEffects
-      .filter(effect => effect[name])
-      .map(effect => effect[name])
-    const cards = history.slice(-1)[0];
-    if (!cards) {
-      return undefined;
-    }
-    return cards
-  }
-
-  getHand(): Deque<Card> {
-    const hand = this.reduceCurrentState('handCard');
-    if(!hand) {
-      return new Deque();
-    }
-    return hand;
-  }
-
-  getDrawPile(): Deque<Card> {
-    const drawPile =  this.reduceCurrentState('drawPile');
-    if(!drawPile) {
-      return this.cards.drawPile;
-    }
-    return drawPile;
-  }
-
-  getDiscardPile(): Deque<Card> {
-    const discard = this.reduceCurrentState('discardPile');
-    if(!discard) {
-      return new Deque();
-    }
-    return discard;
-  }
-
-  getHealth(): number {
-    const health = this.cardEffects
-      .map((element) => element.health || 0)
-      .reduce((p, c) => p + c, 0);
-    return health;
-  }
-
-  getHealthLimit(): number {
-    return this.cardEffects
-      .map((element) => element.healthLimit || 0)
-      .reduce((p, c) => p + c);
-  }
-
-  isDead(): boolean {
-    return this.getHealth() <= 0;
-  }
+  waitForTurn(): csp.Channel<undefined>;
+  observeActionTaken(): Promise<Action>;
+  
+  // mutations
+  draw(n: number)
+  use(card: Card, to: Unit)
+  
+  // observations
+  getHand(): Deque<Card>
+  getDrawPile(): Deque<Card>
+  getDiscardPile(): Deque<Card>
+  getHealth(): number
+  getHealthLimit(): number
+  isDead(): boolean
 }
-
-/*
-
-todos
-
-I probably need a deque implementation that represents a deck of cards
-that can insert and remove cards from/to top, bottom, and random middle place of the deque.
-
-Probably time to write some reproducible tests. Currently there are 488 lines of code.
-Let's see how it goes. If the code starts to not able to be fit in my head at once,
-time to write test code.
-
-*/

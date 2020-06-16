@@ -8,7 +8,7 @@ import * as assert from 'assert';
 describe('Bug Hunt', () => {
   it('has cards in the draw pile at the beginning', () => {
 
-    const drawPile = new Deque<Card>(
+    const deck = new Deque<Card>(
       new card.Attack1(),
       new card.Attack1(),
       new card.QiFlow()
@@ -16,7 +16,7 @@ describe('Bug Hunt', () => {
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: drawPile,
+        drawPile: deck,
         equipped: new Deque(new card.Health(100)),
       },
       {
@@ -24,19 +24,20 @@ describe('Bug Hunt', () => {
         actions: undefined,
       }
     );
-    assert.equal(mainC.getDrawPile().length, drawPile.length)
-
-    const effect = drawPile[2].effect({from: mainC, to: mainC})
-    if(effect instanceof Error) {
-      throw new Error();
-    }
-    if(effect.to) {
-      mainC.cardEffects.push(effect.to);
-    }
-    if(effect.from) {
-      mainC.cardEffects.push(effect.from);
-    }
+    assert.equal(mainC.getDrawPile().length, deck.length)
+    
+    mainC.draw(2);
     assert.equal(mainC.getHand().length, 2)
+    assert.equal(mainC.getDrawPile().length, deck.length - 2)
 
+    mainC.use(deck[1], mainC)
+    assert.equal(mainC.getHand().length, 1)
+    assert.equal(mainC.getDrawPile().length, deck.length - 2)
+    assert.equal(mainC.getDiscardPile().length, 1)
+    assert.equal(mainC.getHealth(), 99)
+
+    mainC.use(deck[2], mainC)
+    assert.equal(mainC.getHand().length, 1)
+    assert.equal(mainC.getHand()[0], deck[0])
   })
 });

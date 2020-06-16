@@ -1,7 +1,122 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
-import { Unit, CardInit, CombatState, Action } from "./interfaces";
+import { Unit, Card, CardInit, CombatState, Action, CardEffect } from "./interfaces";
 import * as math from './math';
+import { Deque } from './math'; 
+import { InvalidBehavior } from './errors';
+import * as card from './card';
+
+export abstract class BaseUnit implements Unit {
+  public cardEffects: Deque<CardEffect> = new Deque();
+
+  constructor(
+    public name: string,
+    protected readonly cards: CardInit
+  ) {
+
+    // apply effects of equippments
+    for (let card of cards.equipped) {
+      const effect = card.effect({
+        from: this,
+        to: this,
+      });
+      if (effect instanceof InvalidBehavior) {
+        throw effect
+      }
+      this.cardEffects.push(effect.to);
+    }
+  }
+
+  abstract async takeAction(combatState: CombatState): Promise<Action>;
+
+  // resolves when it is this unit's turn
+  abstract waitForTurn(): csp.Channel<undefined>;
+
+  abstract async observeActionTaken(): Promise<Action>;
+
+  draw(n: number) {
+    const draw1 = new card.Draw1();
+    for (let i = 0; i < n; i++) {
+      const effect = draw1.effect({
+        from: this,
+        to: this
+      })
+      if (effect instanceof InvalidBehavior) {
+        console.warn(effect.message);
+        break;
+      }
+      this.cardEffects.push(effect.to);
+    }
+  }
+
+  use(card: Card, to: Unit): InvalidBehavior | undefined {
+      const effects = card.effect({from: this, to: to});
+      if(effects instanceof Error) {
+        return effects
+      }
+      if(effects.from) {
+        this.cardEffects.push(effects.from);
+      }
+      if(effects.to) {
+          to.cardEffects.push(effects.to);
+      }
+      if(!effects.from && !effects.to) {
+        throw new Error();
+      }
+  }
+
+  private reduceCurrentState(name: string): Deque<Card> | undefined {
+    let history = this.cardEffects
+      .filter(effect => effect[name])
+      .map(effect => effect[name])
+    const cards = history.slice(-1)[0];
+    if (!cards) {
+      return undefined;
+    }
+    return cards
+  }
+
+  getHand(): Deque<Card> {
+    const hand = this.reduceCurrentState('handCard');
+    if (!hand) {
+      return new Deque();
+    }
+    return hand;
+  }
+
+  getDrawPile(): Deque<Card> {
+    const drawPile = this.reduceCurrentState('drawPile');
+    if (!drawPile) {
+      return this.cards.drawPile;
+    }
+    return drawPile;
+  }
+
+  getDiscardPile(): Deque<Card> {
+    const discard = this.reduceCurrentState('discardPile');
+    if (!discard) {
+      return new Deque();
+    }
+    return discard;
+  }
+
+  getHealth(): number {
+    const health = this.cardEffects
+      .map((element) => element.health || 0)
+      .reduce((p, c) => p + c, 0);
+    return health;
+  }
+
+  getHealthLimit(): number {
+    return this.cardEffects
+      .map((element) => element.healthLimit || 0)
+      .reduce((p, c) => p + c);
+  }
+
+  isDead(): boolean {
+    return this.getHealth() <= 0;
+  }
+}
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;
@@ -11,7 +126,7 @@ export interface UserCommunications {
   actions: csp.Channel<Action>;
 }
 
-export class MainCharactor extends Unit {
+export class MainCharactor extends BaseUnit {
   readonly myTurn: csp.Channel<undefined> = new csp.UnbufferredChannel();
   readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
   constructor(
@@ -53,7 +168,7 @@ export class MainCharactor extends Unit {
   }
 }
 
-export class AIUnit extends Unit {
+export class AIUnit extends BaseUnit {
   readonly chan = csp.chan<undefined>();
   readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
   constructor(public name: string, cards: CardInit) {

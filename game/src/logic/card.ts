@@ -200,7 +200,7 @@ export class Shuffle implements Card {
 export class QiFlow implements Card {
   kind = CardCategory.NormalCard
   name = "真气加载"
-  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+  effect(input: EffectArguments): { from: CardEffect, to?: CardEffect } | errors.InvalidBehavior {
     const err = sameOrigin(input)
     if (err) {
       return err;
@@ -211,19 +211,20 @@ export class QiFlow implements Card {
     if (!last) {
       return new errors.InvalidBehavior('The is no card on draw pile');
     }
-    const newHandCard = input.from.getHand().concat(last)
+
+    const newFrom = cardIsUsed(input.to, this);
     return {
-      from: cardIsUsed(input.to, this),
+      from: newFrom,
       to: {
         by: this,
-        handCard: new Deque(...newHandCard),
+        handCard: new Deque(...newFrom.handCard.concat(last)),
         drawPile: new Deque(...drawPile.slice(0, -1))
       }
     }
   }
 }
 
-function cardIsUsed(unit: Unit, card: Card): CardEffect {
+function cardIsUsed(unit: Unit, card: Card) {
   const hand = unit.getHand();
   const discard = unit.getDiscardPile();
   const i = hand.indexOf(card);

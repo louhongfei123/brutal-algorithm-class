@@ -13,9 +13,9 @@ import * as units from "../units";
 export default class CombatScene extends Phaser.Scene {
   combats: Combat[];
   currentCombatIndex: number = 0;
-  // @ts-expect-error
+  // @ts-ignore
   enermyContainer: Phaser.GameObjects.GameObject;
-  // @ts-expect-error
+  // @ts-ignore
   playerContainer: Phaser.GameObjects.Container;
   handCards: Phaser.GameObjects.GameObject[] = [];
 

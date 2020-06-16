@@ -61,21 +61,6 @@ export class Combat {
     }
   }
 
-  draw(unit: Unit, n: number) {
-    const draw1 = new card.Draw1();
-    for(let i = 0; i < n; i++) {
-      const effect = draw1.effect({
-        from: unit,
-        to: unit
-      })
-      if(effect instanceof errors.InvalidBehavior) {
-        console.warn(effect.message);
-        break;
-      }
-      unit.cardEffects.push(effect.to);
-    }
-  }
-
   shuffle(unit: Unit) {
     const shuffle = new card.Shuffle();
     const effect = shuffle.effect({
@@ -89,19 +74,21 @@ export class Combat {
   }
 
   async takeTurn(unit: Unit) {
-    // unit.assertEffectsValidity();
+    // shuffling from discard pile if needed
     // @ts-ignore
     console.log(unit.cards)
     console.log(unit.getDiscardPile())
     if (unit.getDrawPile().length === 0) {
       this.shuffle(unit);
     }
+
+    // drawing
     console.log('drawing', unit.getHand());
-    const failedToDraw = this.draw(unit, 2); // Let's only draw 2 cards as of now. Subject to change.
-    await this.stateChange.put("taking action");
-    console.log("failedToDraw", failedToDraw);
+    unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
     console.log(unit.getHand());
 
+    // taking action
+    await this.stateChange.put("taking action");
     let action: Action;
     while (true) {
       action = await unit.takeAction({
