@@ -9,10 +9,6 @@ import * as physics from "../physics";
 import { Deque } from "../logic/math";
 import * as units from "../units";
 
-const GROUND_KEY = "ground";
-const DUDE_KEY = "dude";
-const STAR_KEY = "star";
-const BOMB_KEY = "bomb";
 
 export default class CombatScene extends Phaser.Scene {
   combats: Combat[];
@@ -31,10 +27,10 @@ export default class CombatScene extends Phaser.Scene {
     super("game-scene");
   
     const drawPile = new Deque<Card>(
-      new card.Attack3(),
-      new card.Attack2(),
-      new card.Heal(),
-      new card.QiFlow()
+      new card.Attack1(),
+      // new card.Attack2(),
+      // new card.Heal(),
+      // new card.QiFlow()
     );
     console.log(drawPile);
     drawPile.last();
@@ -50,23 +46,15 @@ export default class CombatScene extends Phaser.Scene {
     );
     // Start the campagin
     this.combats = [
-      new Combat(mainC, units.InternalDisciple()),
-      new Combat(mainC, units.EliteInternalDisciple())
+      new Combat(mainC, units.SchoolBully()),
+      // new Combat(mainC, units.EliteInternalDisciple())
     ]
   }
 
   preload() {
     this.load.image("sky", "assets/sky.png");
-    this.load.image(GROUND_KEY, "assets/platform.png");
-    this.load.image(STAR_KEY, "assets/star.png");
-    this.load.image(BOMB_KEY, "assets/bomb.png");
     this.load.image("girl_1", "assets/girl_1.png");
     this.load.image("girl_2", "assets/girl_2.png");
-
-    this.load.spritesheet(DUDE_KEY, "assets/dude.png", {
-      frameWidth: 32,
-      frameHeight: 48,
-    });
   }
 
   async create() {
@@ -85,6 +73,7 @@ export default class CombatScene extends Phaser.Scene {
         [
           [this.currentCombat().participantA.waitForTurn(), async (state) => {
             const { handCards, enermy, player } = await this.refresh();
+            console.log(this.currentCombat().participantA);
             const overlapListener = async (handCard, target) => {
               let pointer = this.input.activePointer;
               if (!pointer.isDown) {
@@ -183,7 +172,8 @@ export default class CombatScene extends Phaser.Scene {
     }
     this.handCards = [];
 
-    const hand = combat.participantA.cards.hand;
+    const hand = combat.participantA.getHand();
+    console.log(hand);
     for (let i = 0; i < hand.length; i++) {
       const cardContainer = this.renderCard(hand[i], 200 + this.cardWidth * i, 550, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();

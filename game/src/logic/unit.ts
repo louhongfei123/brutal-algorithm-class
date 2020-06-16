@@ -65,7 +65,7 @@ export class AIUnit extends Unit {
     const action = {
       from: this,
       to: combatState.opponent,
-      card: math.randomPick(this.cards.hand)
+      card: math.randomPick(this.getHand())
     };
     await this.actionTaken.put(action);
     return action;

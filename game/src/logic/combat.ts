@@ -2,6 +2,8 @@ import * as csp from "../lib/csp";
 import { Unit, CardEffect, Action } from "./interfaces";
 import { log } from "./logger";
 import * as errors from "./errors";
+import * as card from "./card";
+import { Deque } from './math';
 
 type CombatState = "taking action";
 
@@ -11,7 +13,7 @@ export class Combat {
   private multicaster = new csp.Multicaster<CombatState>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
-  constructor(public participantA: Unit, public participantB: Unit) {}
+  constructor(public participantA: Unit, public participantB: Unit) { }
 
   onStateChange(): csp.Channel<CombatState> {
     return this.multicaster.copy();
@@ -59,49 +61,70 @@ export class Combat {
     }
   }
 
-  async takeTurn(unit: Unit) {
-    const { effect, action } = await (async () => {
-      while (true) {
-        if (unit.cards.drawPile.length === 0) {
-          unit.shuffle();
-        }
-
-        console.log('drawing', unit.cards.hand);
-        const failedToDraw = await unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
-        await this.stateChange.put("taking action");
-        console.log("failedToDraw", failedToDraw);
-        console.log(unit.cards.hand);
-        const action = await unit.takeAction({
-          opponent: this.getOpponent(),
-        });
-        await log(
-          `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
-        );
-
-        let ret = await (async function() {
-          try {
-            return { effect: action.card.effect(action), action };
-          } catch (e) {
-            if(!(e instanceof errors.InvalidBehavior)) {
-              throw e;
-            }
-            // This is not a valid action.
-            await log(e.message);
-            await log("please choose again\n");
-            // continue;
-            return undefined;
-          }
-        })();
-        if(!ret) {
-          console.log("continue");
-          continue;
-        }
-        return ret;
+  draw(unit: Unit, n: number) {
+    const draw1 = new card.Draw1();
+    for(let i = 0; i < n; i++) {
+      const effect = draw1.effect({
+        from: unit,
+        to: unit
+      })
+      if(effect instanceof errors.InvalidBehavior) {
+        console.warn(effect.message);
+        break;
       }
-    })();
+      unit.cardEffects.push(effect.to);
+    }
+  }
 
-    action.to.cardEffects.push(effect);
-    unit.moveToDiscardFromHand(action.card); // todo: something wrong here
+  shuffle(unit: Unit) {
+    const shuffle = new card.Shuffle();
+    const effect = shuffle.effect({
+      from: unit,
+      to: unit
+    })
+    if(effect instanceof errors.InvalidBehavior) {
+      throw effect;
+    }
+    unit.cardEffects.push(effect.to);
+  }
+
+  async takeTurn(unit: Unit) {
+    unit.assertEffectsValidity();
+    // @ts-ignore
+    console.log(unit.cards)
+    console.log(unit.getDiscardPile())
+    if (unit.getDrawPile().length === 0) {
+      this.shuffle(unit);
+    }
+    console.log('drawing', unit.getHand());
+    const failedToDraw = this.draw(unit, 2); // Let's only draw 2 cards as of now. Subject to change.
+    await this.stateChange.put("taking action");
+    console.log("failedToDraw", failedToDraw);
+    console.log(unit.getHand());
+
+    let action: Action;
+    while (true) {
+      action = await unit.takeAction({
+        opponent: this.getOpponent(),
+      });
+      await log(
+        `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
+      );
+      let effectOrError = action.card.effect(action);
+      if (effectOrError instanceof errors.InvalidBehavior) {
+        console.log(effectOrError.message);
+        await log("please choose again\n");
+        continue;
+      }
+      if(effectOrError.to) {
+        action.to.cardEffects.push(effectOrError.to);
+      }
+      if(effectOrError.from) {
+        action.from.cardEffects.push(effectOrError.from);
+      }
+      break;
+    }
+    // unit.moveToDiscardFromHand(action.card); // todo: something wrong here
     await log("-------------------\n\n\n");
   }
 
@@ -127,5 +150,6 @@ export class Combat {
   }
 
   // Winner can loot 1 card from the looser
-  async loot(winner: Unit, looser: Unit) {}
+  async loot(winner: Unit, looser: Unit) { }
 }
+

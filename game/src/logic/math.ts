@@ -4,7 +4,6 @@ export function shuffle(array: any[]) {
     let pick = Math.floor(Math.random() * array.length); // [0 ~ 1)
     swap(array, i, pick);
   }
-  return array;
 }
 
 export function swap(array: any[], i: number, j: number) {
@@ -23,10 +22,10 @@ export function randomPick(array: any[]): any {
 }
 
 export class Deque<T> extends Array<T> {
-  first(): T {
+  first(): T | undefined {
     return this[0]
   }
-  last(): T {
+  last(): T | undefined {
     return this[this.length - 1]
   }
 }

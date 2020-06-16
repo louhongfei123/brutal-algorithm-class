@@ -1,6 +1,7 @@
 import * as math from "./math";
 import { Deque } from "./math";
 import * as csp from "../lib/csp";
+import { InvalidBehavior } from './errors';
 
 export enum CardCategory {
   NormalCard = "NormalCard",
@@ -9,8 +10,10 @@ export enum CardCategory {
 
 export interface EffectArguments {
   // The unit which played this card
+  // source
   from: Unit;
   // The unit which was played against with this card
+  // target
   to: Unit;
 }
 
@@ -19,16 +22,19 @@ export interface Card {
   kind: CardCategory;
   name: string;
   desp?: string;
-  effect(input: EffectArguments): CardEffect;
+  effect(input: EffectArguments): { from?: CardEffect, to?: CardEffect } | InvalidBehavior;
 }
 
 // A difference vector that represents the change of state of the unit.
 export interface CardEffect {
-  by: Card;
-  health?: number;
-  healthLimit?: number;
-  handCard?: Card[]
-  drawPile?: Card[]
+  by: Card
+  // delta
+  health?: number
+  healthLimit?: number
+  // current state
+  handCard?: Deque<Card>
+  drawPile?: Deque<Card>
+  discardPile?: Deque<Card>
 }
 
 export interface NormalCard extends Card {
@@ -39,7 +45,7 @@ export interface NormalCard extends Card {
 export abstract class EquippmentCard implements Card {
   kind = CardCategory.EquippmentCard;
   name = "";
-  abstract effect(input: EffectArguments): CardEffect;
+  abstract effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | InvalidBehavior;
 }
 
 export interface Action extends EffectArguments {
@@ -54,36 +60,71 @@ export interface CombatState {
 
 export interface CardInit {
   // 抽牌堆
-  drawPile: math.Deque<Card>;
+  readonly drawPile: math.Deque<Card>;
   // 已装备的牌
-  equipped: math.Deque<EquippmentCard>;
+  readonly equipped: math.Deque<EquippmentCard>;
 }
 
-export interface CardsOfUnit extends CardInit {
-  // 手牌
-  hand: math.Deque<Card>;
-  // 弃牌堆
-  discardPile: math.Deque<Card>;
-}
+// export interface CardsOfUnit extends CardInit {
+//   // 手牌
+//   readonly hand: math.Deque<Card>;
+//   // 弃牌堆
+//   readonly discardPile: math.Deque<Card>;
+// }
 
 export abstract class Unit {
-  public cardEffects: CardEffect[] = [];
-  public cards: CardsOfUnit = {
-    hand: new math.Deque(),
-    equipped: new math.Deque(),
-    drawPile: new math.Deque(),
-    discardPile: new math.Deque(),
-  };
+  public cardEffects: Deque<CardEffect> = new Deque();
+  // protected readonly cards: CardsOfUnit = {
+  //   hand: new math.Deque(),
+  //   equipped: new math.Deque(),
+  //   drawPile: new math.Deque(),
+  //   discardPile: new math.Deque(),
+  // };
 
-  constructor(public name: string, cards: CardInit) {
-    this.cards.equipped = cards.equipped;
-    this.cards.drawPile = cards.drawPile;
+  constructor(
+    public name: string,
+    protected readonly cards: CardInit
+  ) {
+    // this.cards.equipped = cards.equipped;
+    // this.cards.drawPile = cards.drawPile;
+
+    // apply effects of equippments
     for (let card of cards.equipped) {
       const effect = card.effect({
         from: this,
         to: this,
       });
-      this.cardEffects.push(effect);
+      if (effect instanceof InvalidBehavior) {
+        throw effect
+      }
+      this.cardEffects.push(effect.to);
+    }
+  }
+
+  assertEffectsValidity() {
+    const effects = this.cardEffects
+    let hand = new Deque();
+    let draw = this.cards.drawPile;
+    let discard = new Deque();
+    for (let effect of effects) {
+      if (effect.handCard && effect.handCard.length !== hand.length - 1) {
+        throw new Error();
+      }
+      if (effect.discardPile && effect.discardPile.length !== discard.length + 1) {
+        throw new Error();
+      }
+      if (
+        effect.discardPile &&
+        effect.handCard &&
+        effect.drawPile &&
+        effect.discardPile.length + effect.handCard.length + effect.drawPile.length !==
+        discard.length + hand.length + draw.length
+      ) {
+        throw new Error();
+      }
+      hand = effect.handCard? effect.handCard: hand;
+      draw = effect.drawPile? effect.drawPile: draw;
+      discard = effect.discardPile? effect.discardPile: discard;
     }
   }
 
@@ -94,43 +135,53 @@ export abstract class Unit {
 
   abstract async observeActionTaken(): Promise<Action>;
 
-  // Draw n cards from draw pile to hand.
-  // It turns the number of card that failed to be drawn.
-  draw(n: number): number {
-    for (let i = 0; i < n; i++) {
-      let top = this.cards.drawPile.pop();
-      if (!top) {
-        return n - i;
-      }
-      this.cards.hand.push(top);
-    }
-    return 0;
-  }
-
   // Move all cards in the discard pile to the draw pile and shuffle it.
-  shuffle() {
-    console.log(`${this.name} shuffles`);
-    this.cards.drawPile = this.cards.discardPile;
-    this.cards.discardPile = new Deque();
-    math.shuffle(this.cards.drawPile);
+  // shuffle() {
+  //   console.log(`${this.name} shuffles`);
+  //   this.cards.drawPile = this.cards.discardPile;
+  //   this.cards.discardPile = new Deque();
+  //   math.shuffle(this.cards.drawPile);
+  // }
+
+  // moveToDiscardFromHand(card: Card) {
+  //   console.log(this.cards.hand, this.cards.discardPile);
+  //   for (let [i, c] of this.cards.hand.entries()) {
+  //     if (c === card) {
+  //       const [card2, newHand] = math.popFrom(this.cards.hand, i);
+  //       if (card2 !== card) {
+  //         throw new Error("unreachable");
+  //       }
+  //       // @ts-ignore
+  //       this.cards.hand = newHand;
+  //       this.cards.discardPile.push(card2);
+  //       console.log(this.cards.hand, this.cards.discardPile);
+  //       return;
+  //     }
+  //   }
+  //   throw new Error(`card: ${card} does not exist in hand`);
+  // }
+
+  private reduceCurrentState(name: string): Deque<Card> {
+    let history = this.cardEffects
+      .filter(effect => effect[name])
+      .map(effect => effect[name])
+    const cards = history.slice(-1)[0];
+    if (!cards) {
+      return new Deque();
+    }
+    return cards
   }
 
-  moveToDiscardFromHand(card: Card) {
-    console.log(this.cards.hand, this.cards.discardPile);
-    for (let [i, c] of this.cards.hand.entries()) {
-      if (c === card) {
-        const [card2, newHand] = math.popFrom(this.cards.hand, i);
-        if (card2 !== card) {
-          throw new Error("unreachable");
-        }
-        // @ts-ignore
-        this.cards.hand = newHand;
-        this.cards.discardPile.push(card2);
-        console.log(this.cards.hand, this.cards.discardPile);
-        return;
-      }
-    }
-    throw new Error(`card: ${card} does not exist in hand`);
+  getHand(): Deque<Card> {
+    return this.reduceCurrentState('handCard');
+  }
+
+  getDrawPile(): Deque<Card> {
+    return this.reduceCurrentState('drawPile');
+  }
+
+  getDiscardPile(): Deque<Card> {
+    return this.reduceCurrentState('discardPile');
   }
 
   getHealth(): number {
@@ -145,6 +196,7 @@ export abstract class Unit {
       .map((element) => element.healthLimit || 0)
       .reduce((p, c) => p + c);
   }
+
   isDead(): boolean {
     return this.getHealth() <= 0;
   }

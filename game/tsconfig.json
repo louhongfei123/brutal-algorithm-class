@@ -13,20 +13,12 @@
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"paths": {
-		  "~/*": ["./*"]
-		},
-		"typeRoots": [
-			"node_modules/@types",
-			"node_module/phaser/types"
-		],
 		"types": [
 			"phaser"
 		],
         "lib": [
-            // "ES2015",
+			"ES2020",
 			"DOM",
-			"ES2018.AsyncIterable"
         ]
 	},
 	"include": [

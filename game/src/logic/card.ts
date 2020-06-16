@@ -6,6 +6,9 @@ import {
   CardCategory,
   EffectArguments,
 } from "./interfaces";
+import { Deque, shuffle } from "./math";
+import * as errors from "./errors";
+
 
 //////////////////
 // Attack Cards //
@@ -13,140 +16,215 @@ import {
 export class Attack1 implements Card {
   name = Attack1.name;
   kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
+  constructor() { }
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    const hand = input.from.getHand();
+    const discard = input.from.getDiscardPile();
+    const i = hand.indexOf(this);
     return {
-      by: this,
-      health: -1,
+      from: {
+        by: this,
+        handCard: new Deque(...hand.splice(i)),
+        discardPile: new Deque(...discard.concat(this))
+      },
+      to: {
+        by: this,
+        health: -1,
+      }
     };
   }
 }
 
-export class Attack2 implements Card {
-  name = Attack2.name;
-  kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    return {
-      by: this,
-      health: -2,
-    };
-  }
-}
+// export class Attack2 implements Card {
+//   name = Attack2.name;
+//   kind = CardCategory.NormalCard;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     return {
+//       by: this,
+//       health: -2,
+//     };
+//   }
+// }
 
-export class Attack3 implements Card {
-  name = Attack3.name;
-  kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    return {
-      by: this,
-      health: -3,
-    };
-  }
-}
+// export class Attack3 implements Card {
+//   name = Attack3.name;
+//   kind = CardCategory.NormalCard;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     return {
+//       by: this,
+//       health: -3,
+//     };
+//   }
+// }
 
-export class Attack4 implements Card {
-  name = Attack4.name;
-  kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    return {
-      by: this,
-      health: -4,
-    };
-  }
-}
+// export class Attack4 implements Card {
+//   name = Attack4.name;
+//   kind = CardCategory.NormalCard;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     return {
+//       by: this,
+//       health: -4,
+//     };
+//   }
+// }
 
-export class Attack5 implements Card {
-  name = Attack5.name;
-  kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    return {
-      by: this,
-      health: -5,
-    };
-  }
-}
+// export class Attack5 implements Card {
+//   name = Attack5.name;
+//   kind = CardCategory.NormalCard;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     return {
+//       by: this,
+//       health: -5,
+//     };
+//   }
+// }
 
-export class FollowUpAttack implements Card {
-  name = FollowUpAttack.name;
-  desp =
-    "If the previous used/discard card is an attack, duplicate its effect and produce additional damage";
-  kind = CardCategory.NormalCard;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    if (input.from.cards.discardPile.length === 0) {
-      throw new Error(
-        "FollowUpAttack: There is no card on the top of discard pile"
-      );
-    }
-    // console.log(JSON.stringify(input.from.cards.discardPile));
-    let eff = input.from.cards.discardPile[
-      input.from.cards.discardPile.length - 1
-    ].effect(input);
-    // @ts-ignore
-    eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
-    return eff;
-  }
-}
+// export class FollowUpAttack implements Card {
+//   name = FollowUpAttack.name;
+//   desp =
+//     "If the previous used/discard card is an attack, duplicate its effect and produce additional damage";
+//   kind = CardCategory.NormalCard;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     if (input.from.getDiscardPile().length === 0) {
+//       return new errors.InvalidBehavior("FollowUpAttack: There is no card on the top of discard pile");
+//     }
+//     let eff = input.from.getDiscardPile()[
+//       input.from.getDiscardPile().length - 1
+//     ].effect(input);
+//     if (eff instanceof errors.InvalidBehavior) {
+//       return eff;
+//     }
+//     if (!eff.health) {
+//       throw new Error();
+//     }
+//     // todo: check card type to be attack
+//     eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
+//     return eff;
+//   }
+// }
 
-export class QiAttack implements Card {
-  name = QiAttack.name
+// export class QiAttack implements Card {
+//   name = QiAttack.name
+//   kind = CardCategory.NormalCard
+//   effect(input: EffectArguments): CardEffect {
+//     return {
+//       by: this,
+//       health: -5,
+//       healthLimit: -3
+//     }
+//   }
+// }
+
+// ///////////////////
+// // Healing Cards //
+// ///////////////////
+// export class Heal implements Card {
+//   kind = CardCategory.NormalCard;
+//   name = Heal.name;
+//   constructor() { }
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     let health = 5;
+//     // console.log("getHealth", input.getHealth());
+//     // console.log("getHealthLimit", input.getHealthLimit());
+//     if (input.to.getHealth() + health > input.to.getHealthLimit()) {
+//       health = input.to.getHealthLimit() - input.to.getHealth();
+//     }
+//     // console.log("effect", health);
+//     return {
+//       by: this,
+//       health: health,
+//       handCard: input.to.get
+//     };
+//   }
+// }
+
+// ////////////////////////
+// // System Effect Card //
+// ////////////////////////
+export class Draw1 implements Card {
   kind = CardCategory.NormalCard
-  effect(input: EffectArguments): CardEffect {
+  name = Draw1.name
+
+  effect(input: EffectArguments): { to: CardEffect } | errors.InvalidBehavior {
+    const err = sameOrigin(input)
+    if (err) {
+      return err;
+    }
+
+    const drawPile = input.from.getDrawPile()
+    const last = drawPile.last();
+    if (!last) {
+      return new errors.InvalidBehavior('no card can be drawn');
+    }
+    const hand = input.from.getHand()
+    const newHandCard = hand.concat(last)
     return {
-      by: this,
-      health: -5,
-      healthLimit: -3
+      to: {
+        by: this,
+        handCard: new Deque(...newHandCard),
+        drawPile: new Deque(...drawPile.slice(0, -1)),
+        discardPile: input.to.getDiscardPile()
+      }
     }
   }
 }
 
-///////////////////
-// Healing Cards //
-///////////////////
-export class Heal implements Card {
-  kind = CardCategory.NormalCard;
-  name = Heal.name;
-  constructor() {}
-  effect(input: EffectArguments): CardEffect {
-    let health = 5;
-    // console.log("getHealth", input.getHealth());
-    // console.log("getHealthLimit", input.getHealthLimit());
-    if (input.to.getHealth() + health > input.to.getHealthLimit()) {
-      health = input.to.getHealthLimit() - input.to.getHealth();
-    }
-    // console.log("effect", health);
-    return {
-      by: this,
-      health: health,
-    };
-  }
-}
-
-/////////////////////////
-// Special Effect Card //
-/////////////////////////
-export class QiFlow implements Card {
+export class Shuffle implements Card {
   kind = CardCategory.NormalCard
-  name = QiFlow.name
-  effect(input: EffectArguments): CardEffect {
-    if(input.from !== input.to) {
-      throw new Error('QiFlow can only be played against self');
+  name = Shuffle.name
+  effect(input: EffectArguments): { to: CardEffect } | errors.InvalidBehavior {
+    const err = sameOrigin(input)
+    if (err) {
+      return err;
     }
-    console.log(input.from.cards.drawPile);
-    const newHandCard = input.from.cards.hand.concat(
-      input.from.cards.drawPile.last()
-    )
+
+    const discard = input.to.getDiscardPile();
+    const draw = input.to.getDrawPile();
+    if (draw.length !== 0) {
+      throw new Error();
+    }
+    shuffle(discard)
     return {
-      by: this,
-      handCard: newHandCard,
-      drawPile: input.from.cards.drawPile.slice(0, -1)
+      to: {
+        by: this,
+        handCard: input.to.getHand(),
+        drawPile: discard,
+        discardPile: new Deque()
+      }
     }
   }
 }
+
+
+// /////////////////////////
+// // Special Effect Card //
+// /////////////////////////
+// export class QiFlow implements Card {
+//   kind = CardCategory.NormalCard
+//   name = QiFlow.name
+//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
+//     if (input.from !== input.to) {
+//       return new errors.InvalidBehavior('QiFlow can only be played against self');
+//     }
+
+//     const drawPile = input.from.getDrawPile()
+//     const last = drawPile.last();
+//     if (!last) {
+//       return new errors.InvalidBehavior('The is no card on draw pile');
+//     }
+//     const newHandCard = input.from.getHand().concat(last)
+//     return {
+//       by: this,
+//       handCard: new Deque(...newHandCard),
+//       drawPile: new Deque(...drawPile.slice(0, -1))
+//     }
+//   }
+// }
 
 
 
@@ -158,11 +236,26 @@ export class Health extends EquippmentCard {
   constructor(public health: number) {
     super();
   }
-  effect(input: EffectArguments): CardEffect {
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    const err = sameOrigin(input)
+    if (err) {
+      return err;
+    }
     return {
-      by: this,
-      health: this.health,
-      healthLimit: this.health,
+      from: {
+        by: this
+      },
+      to: {
+        by: this,
+        health: this.health,
+        healthLimit: this.health,
+      }
     };
+  }
+}
+
+function sameOrigin(input: EffectArguments): errors.InvalidBehavior | undefined {
+  if (input.from !== input.to) {
+    return new errors.InvalidBehavior('not same origin');
   }
 }
