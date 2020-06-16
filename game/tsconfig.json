@@ -13,9 +13,6 @@
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"types": [
-			"phaser"
-		],
         "lib": [
 			"ES2020",
 			"DOM",

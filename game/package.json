@@ -18,11 +18,14 @@
 	"devDependencies": {
 		"@babel/core": "^7.10.2",
 		"@babel/preset-typescript": "^7.10.1",
+		"@types/mocha": "^7.0.2",
+		"@types/node": "^14.0.13",
 		"@typescript-eslint/eslint-plugin": "^2.29.0",
 		"@typescript-eslint/parser": "^2.29.0",
 		"babel-preset-env": "^1.7.0",
 		"eslint": "^6.8.0",
 		"minimist": ">=1.2.2",
+		"mocha": "^8.0.1",
 		"parcel-plugin-clean-easy": "^1.0.2",
 		"parcel-plugin-static-files-copy": "^2.2.1",
 		"typescript": "^3.8.3"
