@@ -18,15 +18,8 @@ export class Attack1 implements Card {
   kind = CardCategory.NormalCard;
   constructor() { }
   effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
-    const hand = input.from.getHand();
-    const discard = input.from.getDiscardPile();
-    const i = hand.indexOf(this);
     return {
-      from: {
-        by: this,
-        handCard: hand.remove(i),
-        discardPile: new Deque(...discard.concat(this))
-      },
+      from: cardIsUsed(input.to, this),
       to: {
         by: this,
         health: -1,
@@ -204,27 +197,43 @@ export class Shuffle implements Card {
 // /////////////////////////
 // // Special Effect Card //
 // /////////////////////////
-// export class QiFlow implements Card {
-//   kind = CardCategory.NormalCard
-//   name = QiFlow.name
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     if (input.from !== input.to) {
-//       return new errors.InvalidBehavior('QiFlow can only be played against self');
-//     }
+export class QiFlow implements Card {
+  kind = CardCategory.NormalCard
+  name = "真气加载"
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    const err = sameOrigin(input)
+    if (err) {
+      return err;
+    }
 
-//     const drawPile = input.from.getDrawPile()
-//     const last = drawPile.last();
-//     if (!last) {
-//       return new errors.InvalidBehavior('The is no card on draw pile');
-//     }
-//     const newHandCard = input.from.getHand().concat(last)
-//     return {
-//       by: this,
-//       handCard: new Deque(...newHandCard),
-//       drawPile: new Deque(...drawPile.slice(0, -1))
-//     }
-//   }
-// }
+    const drawPile = input.from.getDrawPile()
+    const last = drawPile.last();
+    if (!last) {
+      return new errors.InvalidBehavior('The is no card on draw pile');
+    }
+    const newHandCard = input.from.getHand().concat(last)
+    return {
+      from: cardIsUsed(input.to, this),
+      to: {
+        by: this,
+        handCard: new Deque(...newHandCard),
+        drawPile: new Deque(...drawPile.slice(0, -1))
+      }
+    }
+  }
+}
+
+function cardIsUsed(unit: Unit, card: Card): CardEffect {
+  const hand = unit.getHand();
+  const discard = unit.getDiscardPile();
+  const i = hand.indexOf(card);
+  console.log(hand, discard, hand.remove(i))
+  return {
+    by: card,
+    handCard: hand.remove(i),
+    discardPile: new Deque(...discard.concat(card))
+  }
+}
 
 
 

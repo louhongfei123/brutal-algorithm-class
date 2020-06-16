@@ -31,7 +31,7 @@ export default class CombatScene extends Phaser.Scene {
       new card.Attack1(),
       // new card.Attack2(),
       // new card.Heal(),
-      // new card.QiFlow()
+      new card.QiFlow()
     );
     console.log(drawPile);
     drawPile.last();
