@@ -85,18 +85,7 @@ export class Combat {
       await log(
         `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
       );
-      let effectOrError = action.card.effect(action);
-      if (effectOrError instanceof errors.InvalidBehavior) {
-        console.log(effectOrError.message);
-        await log("please choose again\n");
-        continue;
-      }
-      if(effectOrError.to) {
-        action.to.cardEffects.push(effectOrError.to);
-      }
-      if(effectOrError.from) {
-        action.from.cardEffects.push(effectOrError.from);
-      }
+      unit.use(action.card, action.to);
       break;
     }
     // unit.moveToDiscardFromHand(action.card); // todo: something wrong here

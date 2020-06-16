@@ -99,6 +99,10 @@ export default class CombatScene extends Phaser.Scene {
           }],
           [this.currentCombat().participantB.waitForTurn(), async () => {
             const { handCards, enermy, player } = await this.refresh();
+            console.log(this.currentCombat().participantA.getHand());
+            console.log(this.currentCombat().participantA.getDrawPile());
+            console.log(this.currentCombat().participantA.getDiscardPile());
+            // await csp.sleep(100000)
             const action = await this.currentCombat().participantB.observeActionTaken();
             // todo: render a card attack animation
             // https://phaser.io/examples

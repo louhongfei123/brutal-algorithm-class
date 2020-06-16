@@ -197,28 +197,31 @@ export class Shuffle implements Card {
 // /////////////////////////
 // // Special Effect Card //
 // /////////////////////////
-export class QiFlow implements Card {
+abstract class SelfCard {
+  kind = CardCategory.NormalCard
+  abstract effect(input: EffectArguments): { from: CardEffect } | errors.InvalidBehavior
+}
+
+export class QiFlow implements SelfCard {
   kind = CardCategory.NormalCard
   name = "真气加载"
-  effect(input: EffectArguments): { from: CardEffect, to?: CardEffect } | errors.InvalidBehavior {
+  effect(input: EffectArguments): { from: CardEffect } | errors.InvalidBehavior {
     const err = sameOrigin(input)
     if (err) {
       return err;
     }
-
     const drawPile = input.from.getDrawPile()
     const last = drawPile.last();
     if (!last) {
       return new errors.InvalidBehavior('The is no card on draw pile');
     }
-
     const newFrom = cardIsUsed(input.to, this);
     return {
-      from: newFrom,
-      to: {
-        by: this,
+      from: {
+        by: newFrom.by,
         handCard: new Deque(...newFrom.handCard.concat(last)),
-        drawPile: new Deque(...drawPile.slice(0, -1))
+        drawPile: new Deque(...drawPile.slice(0, -1)),
+        discardPile: newFrom.discardPile
       }
     }
   }

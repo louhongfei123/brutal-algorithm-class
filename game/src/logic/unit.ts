@@ -66,6 +66,7 @@ export abstract class BaseUnit implements Unit {
     if (effects instanceof Error) {
       return effects
     }
+    // todo: why the order of from & to change the result
     if (effects.from) {
       this.cardEffects.push(effects.from);
     }
