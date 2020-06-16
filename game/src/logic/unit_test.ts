@@ -32,12 +32,14 @@ describe('Bug Hunt', () => {
 
     mainC.use(deck[1], mainC)
     assert.equal(mainC.getHand().length, 1)
-    assert.equal(mainC.getDrawPile().length, deck.length - 2)
+    assert.equal(mainC.getDrawPile().length, 1)
     assert.equal(mainC.getDiscardPile().length, 1)
     assert.equal(mainC.getHealth(), 99)
 
     mainC.use(deck[2], mainC)
     assert.equal(mainC.getHand().length, 1)
     assert.equal(mainC.getHand()[0], deck[0])
+    assert.equal(mainC.getDrawPile().length, 0)
+    assert.equal(mainC.getDiscardPile().length, 2)
   })
 });
