@@ -65,28 +65,13 @@ export interface CardInit {
   readonly equipped: math.Deque<EquippmentCard>;
 }
 
-// export interface CardsOfUnit extends CardInit {
-//   // 手牌
-//   readonly hand: math.Deque<Card>;
-//   // 弃牌堆
-//   readonly discardPile: math.Deque<Card>;
-// }
-
 export abstract class Unit {
   public cardEffects: Deque<CardEffect> = new Deque();
-  // protected readonly cards: CardsOfUnit = {
-  //   hand: new math.Deque(),
-  //   equipped: new math.Deque(),
-  //   drawPile: new math.Deque(),
-  //   discardPile: new math.Deque(),
-  // };
 
   constructor(
     public name: string,
     protected readonly cards: CardInit
   ) {
-    // this.cards.equipped = cards.equipped;
-    // this.cards.drawPile = cards.drawPile;
 
     // apply effects of equippments
     for (let card of cards.equipped) {
@@ -101,32 +86,33 @@ export abstract class Unit {
     }
   }
 
-  assertEffectsValidity() {
-    const effects = this.cardEffects
-    let hand = new Deque();
-    let draw = this.cards.drawPile;
-    let discard = new Deque();
-    for (let effect of effects) {
-      if (effect.handCard && effect.handCard.length !== hand.length - 1) {
-        throw new Error();
-      }
-      if (effect.discardPile && effect.discardPile.length !== discard.length + 1) {
-        throw new Error();
-      }
-      if (
-        effect.discardPile &&
-        effect.handCard &&
-        effect.drawPile &&
-        effect.discardPile.length + effect.handCard.length + effect.drawPile.length !==
-        discard.length + hand.length + draw.length
-      ) {
-        throw new Error();
-      }
-      hand = effect.handCard? effect.handCard: hand;
-      draw = effect.drawPile? effect.drawPile: draw;
-      discard = effect.discardPile? effect.discardPile: discard;
-    }
-  }
+  // assertEffectsValidity() {
+  //   const effects = this.cardEffects
+  //   let hand = new Deque();
+  //   let draw = this.cards.drawPile;
+  //   let discard = new Deque();
+  //   for (let effect of effects) {
+  //     if (effect.handCard && effect.handCard.length !== hand.length - 1) {
+  //       console.log(effect);
+  //       throw new Error();
+  //     }
+  //     if (effect.discardPile && effect.discardPile.length !== discard.length + 1) {
+  //       throw new Error();
+  //     }
+  //     if (
+  //       effect.discardPile &&
+  //       effect.handCard &&
+  //       effect.drawPile &&
+  //       effect.discardPile.length + effect.handCard.length + effect.drawPile.length !==
+  //       discard.length + hand.length + draw.length
+  //     ) {
+  //       throw new Error();
+  //     }
+  //     hand = effect.handCard? effect.handCard: hand;
+  //     draw = effect.drawPile? effect.drawPile: draw;
+  //     discard = effect.discardPile? effect.discardPile: discard;
+  //   }
+  // }
 
   abstract async takeAction(combatState: CombatState): Promise<Action>;
 

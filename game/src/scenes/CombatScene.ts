@@ -28,6 +28,7 @@ export default class CombatScene extends Phaser.Scene {
   
     const drawPile = new Deque<Card>(
       new card.Attack1(),
+      new card.Attack1(),
       // new card.Attack2(),
       // new card.Heal(),
       // new card.QiFlow()

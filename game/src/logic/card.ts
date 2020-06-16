@@ -24,7 +24,7 @@ export class Attack1 implements Card {
     return {
       from: {
         by: this,
-        handCard: new Deque(...hand.splice(i)),
+        handCard: hand.remove(i),
         discardPile: new Deque(...discard.concat(this))
       },
       to: {

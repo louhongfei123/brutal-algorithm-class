@@ -89,7 +89,7 @@ export class Combat {
   }
 
   async takeTurn(unit: Unit) {
-    unit.assertEffectsValidity();
+    // unit.assertEffectsValidity();
     // @ts-ignore
     console.log(unit.cards)
     console.log(unit.getDiscardPile())

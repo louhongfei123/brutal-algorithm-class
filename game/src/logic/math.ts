@@ -28,4 +28,7 @@ export class Deque<T> extends Array<T> {
   last(): T | undefined {
     return this[this.length - 1]
   }
+  remove(i): Deque<T> {
+    return new Deque(...this.slice(0, i).concat(this.slice(i + 1)))
+  }
 }
