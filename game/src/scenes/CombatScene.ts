@@ -75,6 +75,9 @@ export default class CombatScene extends Phaser.Scene {
           [this.currentCombat().participantA.waitForTurn(), async (state) => {
             const { handCards, enermy, player } = await this.refresh();
             console.log(this.currentCombat().participantA);
+            console.log(this.currentCombat().participantA.getHand());
+            console.log(this.currentCombat().participantA.getDrawPile());
+            console.log(this.currentCombat().participantA.getDiscardPile());
             const overlapListener = async (handCard, target) => {
               let pointer = this.input.activePointer;
               if (!pointer.isDown) {
@@ -99,7 +102,6 @@ export default class CombatScene extends Phaser.Scene {
             const action = await this.currentCombat().participantB.observeActionTaken();
             // todo: render a card attack animation
             // https://phaser.io/examples
-            console.log("enermy turn", action);
             // @ts-ignore
             const body: Phaser.Physics.Arcade.Body = enermy.body
             const cardPlayedByEnermy = this.renderCard(
@@ -149,7 +151,6 @@ export default class CombatScene extends Phaser.Scene {
     // create children of the container
     const rect = this.add.rectangle(0, 0, width, height, color);
     rect.setStrokeStyle(4, 0xefc53f);
-    console.log(card.name);
     const text = this.add.text(-35, -65, card.name);
     cardContainer.add(rect);
     cardContainer.add(text);
