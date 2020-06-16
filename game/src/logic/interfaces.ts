@@ -161,27 +161,39 @@ export abstract class Unit {
   //   throw new Error(`card: ${card} does not exist in hand`);
   // }
 
-  private reduceCurrentState(name: string): Deque<Card> {
+  private reduceCurrentState(name: string): Deque<Card> | undefined {
     let history = this.cardEffects
       .filter(effect => effect[name])
       .map(effect => effect[name])
     const cards = history.slice(-1)[0];
     if (!cards) {
-      return new Deque();
+      return undefined;
     }
     return cards
   }
 
   getHand(): Deque<Card> {
-    return this.reduceCurrentState('handCard');
+    const hand = this.reduceCurrentState('handCard');
+    if(!hand) {
+      return new Deque();
+    }
+    return hand;
   }
 
   getDrawPile(): Deque<Card> {
-    return this.reduceCurrentState('drawPile');
+    const drawPile =  this.reduceCurrentState('drawPile');
+    if(!drawPile) {
+      return this.cards.drawPile;
+    }
+    return drawPile;
   }
 
   getDiscardPile(): Deque<Card> {
-    return this.reduceCurrentState('discardPile');
+    const discard = this.reduceCurrentState('discardPile');
+    if(!discard) {
+      return new Deque();
+    }
+    return discard;
   }
 
   getHealth(): number {
