@@ -5,7 +5,6 @@
 	"scripts": {
 		"start": "parcel src/index.html -p 8000",
 		"build": "parcel build src/index.html --out-dir dist",
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"lint": "eslint ./src --ext .js,.jsx,.ts,.tsx"
 	},
 	"author": "supertommy",
@@ -32,7 +31,8 @@
 	},
 	"dependencies": {
 		"matter": "^0.2.0",
-		"phaser": "^3.23.0"
+		"phaser": "^3.23.0",
+		"ts-node": "^8.10.2"
 	},
 	"parcelCleanPaths": [
 		"dist"

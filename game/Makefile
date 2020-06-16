@@ -15,3 +15,6 @@ serve:
 
 lc:
 	find ./src -name '*.ts' | xargs wc -l | sort -nr
+
+test:
+	$$(npm bin)/mocha -r ts-node/register src/**/*_test.ts --timeout 20 --slow 10 --check-leaks

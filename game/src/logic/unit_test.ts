@@ -7,12 +7,14 @@ import * as assert from 'assert';
 describe('Bug Hunt', () => {
   it('has cards in the draw pile at the beginning', () => {
 
+    const drawPile = new Deque<Card>(
+      new card.Attack1(),
+      new card.Attack1()
+    )
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: new Deque<Card>(
-          new card.Attack1()
-        ),
+        drawPile: drawPile,
         equipped: new Deque(new card.Health(100)),
       },
       {
@@ -20,6 +22,6 @@ describe('Bug Hunt', () => {
         actions: undefined,
       }
     );
-    assert.equal(mainC.getDrawPile().length, 1)
+    assert.equal(mainC.getDrawPile().length, drawPile.length)
   })
 });
