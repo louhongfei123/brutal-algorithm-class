@@ -61,25 +61,13 @@ export class Combat {
     }
   }
 
-  shuffle(unit: Unit) {
-    const shuffle = new card.Shuffle();
-    const effect = shuffle.effect({
-      from: unit,
-      to: unit
-    })
-    if(effect instanceof errors.InvalidBehavior) {
-      throw effect;
-    }
-    unit.cardEffects.push(effect.to);
-  }
-
   async takeTurn(unit: Unit) {
     // shuffling from discard pile if needed
     // @ts-ignore
     console.log(unit.cards)
     console.log(unit.getDiscardPile())
     if (unit.getDrawPile().length === 0) {
-      this.shuffle(unit);
+      unit.shuffle()
     }
 
     // drawing

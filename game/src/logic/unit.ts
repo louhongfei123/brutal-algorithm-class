@@ -2,7 +2,7 @@ import * as csp from "../lib/csp";
 import { log } from "./logger";
 import { Unit, Card, CardInit, CombatState, Action, CardEffect } from "./interfaces";
 import * as math from './math';
-import { Deque } from './math'; 
+import { Deque } from './math';
 import { InvalidBehavior } from './errors';
 import * as card from './card';
 
@@ -49,20 +49,32 @@ export abstract class BaseUnit implements Unit {
     }
   }
 
+  shuffle() {
+    const shuffle = new card.Shuffle();
+    const effect = shuffle.effect({
+      from: this,
+      to: this
+    })
+    if (effect instanceof InvalidBehavior) {
+      throw effect;
+    }
+    this.cardEffects.push(effect.to);
+  }
+
   use(card: Card, to: Unit): InvalidBehavior | undefined {
-      const effects = card.effect({from: this, to: to});
-      if(effects instanceof Error) {
-        return effects
-      }
-      if(effects.from) {
-        this.cardEffects.push(effects.from);
-      }
-      if(effects.to) {
-          to.cardEffects.push(effects.to);
-      }
-      if(!effects.from && !effects.to) {
-        throw new Error();
-      }
+    const effects = card.effect({ from: this, to: to });
+    if (effects instanceof Error) {
+      return effects
+    }
+    if (effects.from) {
+      this.cardEffects.push(effects.from);
+    }
+    if (effects.to) {
+      to.cardEffects.push(effects.to);
+    }
+    if (!effects.from && !effects.to) {
+      throw new Error();
+    }
   }
 
   private reduceCurrentState(name: string): Deque<Card> | undefined {
@@ -161,7 +173,7 @@ export class MainCharactor extends BaseUnit {
   // that is interested to observe action taken by this unit.
   async observeActionTaken(): Promise<Action> {
     const action = await this.actionTaken.pop();
-    if(!action) {
+    if (!action) {
       throw new Error("unreachable");
     }
     return action;
@@ -174,6 +186,7 @@ export class AIUnit extends BaseUnit {
   constructor(public name: string, cards: CardInit) {
     super(name, cards);
   }
+
   async takeAction(combatState: CombatState): Promise<Action> {
     await log("AI is taking actions");
     await this.chan.put(undefined);
@@ -193,9 +206,13 @@ export class AIUnit extends BaseUnit {
 
   async observeActionTaken(): Promise<Action> {
     const action = await this.actionTaken.pop();
-    if(!action) {
+    if (!action) {
       throw new Error("unreachable");
     }
     return action;
+  }
+
+  getDeck() {
+    return this.cards.drawPile;
   }
 }

@@ -4,6 +4,7 @@ import { Deque } from './math';
 import * as card from './card';
 import * as assert from 'assert';
 import * as units from '../units';
+import main from '../main';
 
 
 describe('Bug Hunt', () => {
@@ -25,7 +26,6 @@ describe('Bug Hunt', () => {
         actions: undefined,
       }
     );
-    // todo
     const enermy = units.SchoolBully();
 
     assert.equal(mainC.getDrawPile().length, deck.length)
@@ -45,5 +45,39 @@ describe('Bug Hunt', () => {
     assert.equal(mainC.getHand()[0], deck[0])
     assert.equal(mainC.getDrawPile().length, 0)
     assert.equal(mainC.getDiscardPile().length, 2)
+  })
+
+  it('test 2', () => {
+
+    const deck = new Deque<Card>(
+      new card.Attack1(),
+      new card.Attack1(),
+      new card.QiFlow()
+    )
+    const mainC = new MainCharactor(
+      "主角",
+      {
+        drawPile: deck,
+        equipped: new Deque(new card.Health(100)),
+      },
+      {
+        // @ts-ignore
+        actions: undefined,
+      }
+    );
+    const enermy = units.SchoolBully();
+    
+    mainC.draw(2);
+    mainC.use(deck[2], mainC)
+
+    enermy.draw(2);
+    enermy.use(enermy.getDeck()[0], mainC);
+
+    mainC.shuffle()
+    mainC.draw(2);
+    
+    assert.equal(mainC.getHand().length, 3)
+    assert.equal(mainC.getDrawPile().length, 0)
+    assert.equal(mainC.getDiscardPile().length, 0)
   })
 });

@@ -75,6 +75,7 @@ export interface Unit {
   
   // mutations
   draw(n: number)
+  shuffle()
   use(card: Card, to: Unit)
   
   // observations
