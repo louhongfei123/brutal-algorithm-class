@@ -19,7 +19,7 @@ export class Attack1 implements Card {
   constructor() { }
   effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
     return {
-      from: cardIsUsed(input.to, this),
+      from: cardIsUsed(input.from, this),
       to: {
         by: this,
         health: -1,
@@ -228,7 +228,9 @@ function cardIsUsed(unit: Unit, card: Card) {
   const hand = unit.getHand();
   const discard = unit.getDiscardPile();
   const i = hand.indexOf(card);
-  console.log(hand, discard, hand.remove(i))
+  if(i === -1) {
+      throw new Error('the card has to belong to the unit')
+  }
   return {
     by: card,
     handCard: hand.remove(i),
