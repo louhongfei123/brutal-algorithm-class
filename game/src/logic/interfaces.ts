@@ -76,7 +76,7 @@ export interface Unit {
   // mutations
   draw(n: number)
   shuffle()
-  use(card: Card, to: Unit)
+  use(card: Card, to: Unit): InvalidBehavior | undefined
   
   // observations
   getHand(): Deque<Card>

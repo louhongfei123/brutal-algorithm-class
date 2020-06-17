@@ -8,35 +8,33 @@ export function SchoolBully(): AIUnit {
         "校霸",
         {
             drawPile: new Deque(
-                new card.Attack1(),
-                // new card.Attack2(),
-                // new card.Attack3(),
+                new card.Attack(3),
+                new card.Attack(4),
+                new card.Attack(5),
             ),
             equipped: new Deque(
                 new card.Health(10),
-                // new card.Attack2(),
-                // new card.Attack3(),
             ),
         }
     );
 }
 
 
-// export function MartialArtBeginner(): AIUnit {
-//     return new AIUnit(
-//         "武学习徒",
-//         {
-//             drawPile: new Deque(
-//                 new card.Attack2(),
-//                 new card.Attack3(),
-//                 new card.Attack4(),
-//             ),
-//             equipped: new Deque(
-//                 new card.Health(10)
-//             )
-//         }
-//     );
-// }
+export function MartialArtBeginner(): AIUnit {
+    return new AIUnit(
+        "武学习徒",
+        {
+            drawPile: new Deque(
+                new card.Attack(5),
+                new card.Attack(6),
+                new card.Attack(7),
+            ),
+            equipped: new Deque(
+                new card.Health(15)
+            )
+        }
+    );
+}
 
 
 // export function ExternalDisciple(): AIUnit {

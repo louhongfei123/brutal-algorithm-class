@@ -20,17 +20,15 @@ export default class CombatScene extends Phaser.Scene {
   handCards: Phaser.GameObjects.GameObject[] = [];
 
   userAction = new csp.UnbufferredChannel<Action>();
-  readonly cardWidth = 90;
-  readonly cardHeight = 148;
+  readonly cardWidth = 90 * 2;
+  readonly cardHeight = 148 * 2;
 
   constructor() {
     super("game-scene");
   
     const drawPile = new Deque<Card>(
-      new card.Attack1(),
-      new card.Attack1(),
-      // new card.Attack2(),
-      // new card.Heal(),
+      new card.Attack(3),
+      new card.Attack(4),
       new card.QiFlow()
     );
     console.log(drawPile);
@@ -39,7 +37,7 @@ export default class CombatScene extends Phaser.Scene {
       "主角",
       {
         drawPile: drawPile,
-        equipped: new Deque(new card.Health(100)),
+        equipped: new Deque(new card.Health(20)),
       },
       {
         actions: this.userAction,
@@ -48,6 +46,7 @@ export default class CombatScene extends Phaser.Scene {
     // Start the campagin
     this.combats = [
       new Combat(mainC, units.SchoolBully()),
+      new Combat(mainC, units.MartialArtBeginner()),
       // new Combat(mainC, units.EliteInternalDisciple())
     ]
   }
@@ -60,7 +59,8 @@ export default class CombatScene extends Phaser.Scene {
 
   async create() {
     this.currentCombat().begin();
-    this.add.image(400, 300, "sky");
+    let img = this.add.image(400 * 2, 300 * 2, "sky");
+    img.setScale(2)
     this.input.on("drag", function (pointer, gameObject, dragX, dragY) {
       gameObject.x = dragX;
       gameObject.y = dragY;
@@ -117,8 +117,8 @@ export default class CombatScene extends Phaser.Scene {
             await physics.moveTo(
               this,
               cardPlayedByEnermy,
-              { x: 400, y: 150 },
-              200
+              { x: 400 * 2, y: 150 * 2 },
+              400
             );
             await csp.sleep(1000);
             cardPlayedByEnermy.destroy();
@@ -144,7 +144,39 @@ export default class CombatScene extends Phaser.Scene {
     const handCards = await this.refreshHandCards(this, this.currentCombat());
     const enermy = await this.refreshEnermy(this, this.currentCombat());
     const player = await this.refreshPlayer(this, this.currentCombat());
-    return { handCards, enermy, player }
+    // todo: render draw pile
+    const drawPile = await this.refreshDrawPile();
+    const discardPile = this.refreshDiscardPile();
+    // todo: render discard pile
+    return { handCards, enermy, player, drawPile, discardPile }
+  }
+
+  refreshDrawPile() {
+    const drawPile = this.currentCombat().participantA.getDrawPile();
+    const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
+    const rect = this.add.rectangle(-100, -100, 150, 300, 0x6666ff)
+    const count = this.add.text(-115, -150, `${drawPile.length}`)
+    count.setFontSize(50)
+    const name = this.add.text(-160, -220, `抽牌堆`)
+    name.setFontSize(40)
+    container.add(rect)
+    container.add(count)
+    container.add(name)
+    return drawPile
+  }
+
+  refreshDiscardPile() {
+    const pile = this.currentCombat().participantA.getDiscardPile();
+    const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
+    const rect = this.add.rectangle(-300, -100, 150, 300, 0x6666ff)
+    const count = this.add.text(-315, -150, `${pile.length}`)
+    count.setFontSize(50)
+    const name = this.add.text(-360, -220, `弃牌堆`)
+    name.setFontSize(40)
+    container.add(rect)
+    container.add(count)
+    container.add(name)
+    return pile
   }
 
   renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
@@ -155,7 +187,8 @@ export default class CombatScene extends Phaser.Scene {
     // create children of the container
     const rect = this.add.rectangle(0, 0, width, height, color);
     rect.setStrokeStyle(4, 0xefc53f);
-    const text = this.add.text(-35, -65, card.name);
+    const text = this.add.text(-70, -120, card.name);
+    text.setFontSize(35)
     cardContainer.add(rect);
     cardContainer.add(text);
 
@@ -181,7 +214,7 @@ export default class CombatScene extends Phaser.Scene {
     const hand = combat.participantA.getHand();
     console.log(hand);
     for (let i = 0; i < hand.length; i++) {
-      const cardContainer = this.renderCard(hand[i], 200 + this.cardWidth * i, 550, this.cardWidth, this.cardHeight);
+      const cardContainer = this.renderCard(hand[i], 200*2 + this.cardWidth * i, 550 * 2, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();
       this.input.setDraggable(cardContainer);
       this.handCards.push(cardContainer);
@@ -196,15 +229,15 @@ export default class CombatScene extends Phaser.Scene {
     if (this.enermyContainer) {
       this.enermyContainer.destroy();
     }
-    const container = this.add.container(650, 250);
+    const container = this.add.container(650 * 2, 250 * 2);
 
     // Add enermy image
     const enermy = this.add.image(0, 0, "girl_1");
-    enermy.setScale(0.3);
+    enermy.setScale(0.6);
 
     // Add enermy text
     const text = this.add.text(50, -75, combat.participantB.name);
-    text.setFontSize(35);
+    text.setFontSize(70);
 
     // Display enermy health point
     const health = combat.participantB.getHealth();
@@ -234,11 +267,11 @@ export default class CombatScene extends Phaser.Scene {
     if (this.playerContainer) {
       this.playerContainer.destroy();
     }
-    const container = this.add.container(150, 250);
+    const container = this.add.container(300, 500);
 
     // Add player image
     const player = this.add.image(0, 0, "girl_2");
-    player.setScale(0.3);
+    player.setScale(0.6);
     player.setInteractive();
 
     // Display health point

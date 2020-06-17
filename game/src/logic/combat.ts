@@ -63,46 +63,41 @@ export class Combat {
 
   async takeTurn(unit: Unit) {
     // shuffling from discard pile if needed
-    // @ts-ignore
-    console.log(unit.cards)
-    console.log(unit.getDiscardPile())
     if (unit.getDrawPile().length === 0) {
       unit.shuffle()
     }
 
     // drawing
-    console.log('drawing', unit.getHand());
     unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
-    console.log(unit.getHand());
 
     // taking action
     await this.stateChange.put("taking action");
-    let action: Action;
     while (true) {
-      action = await unit.takeAction({
-        opponent: this.getOpponent(),
-      });
+      const action = await unit.takeAction({ opponent: this.getOpponent() });
       await log(
         `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
       );
-      unit.use(action.card, action.to);
+      const err = unit.use(action.card, action.to);
+      if (err instanceof errors.InvalidBehavior) {
+        console.log(`无法使用【${action.card.name}】`);
+        console.log(err.message)
+        console.log('请重新出牌')
+        continue;
+      }
       break;
     }
-    // unit.moveToDiscardFromHand(action.card); // todo: something wrong here
-    await log("-------------------\n\n\n");
   }
 
   async begin() {
     let winner: any = undefined;
-    // let looser = undefined;
     while (winner === undefined) {
-      const unit = this.getUnitOfThisTurn();
       await log(`===================`);
-      await log(`${unit.name}'s turn`, "\n");
+      const unit = this.getUnitOfThisTurn();
+      await log(`${unit.name}的回合`, "\n");
       await this.takeTurn(unit);
-      //   const unitStatusDelta = action.card.effect(action.to);
       this.changeTurn();
       winner = this.hasWinner();
+      await log("-------------------\n\n\n");
     }
     log(`${winner.name} is the Winner!`);
     await this.waitForWinnerChan.put(winner);
@@ -114,6 +109,8 @@ export class Combat {
   }
 
   // Winner can loot 1 card from the looser
-  async loot(winner: Unit, looser: Unit) { }
+  async loot(winner: Unit, looser: Unit) { 
+    throw new Error()
+  }
 }
 

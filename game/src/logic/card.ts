@@ -13,68 +13,22 @@ import * as errors from "./errors";
 //////////////////
 // Attack Cards //
 //////////////////
-export class Attack1 implements Card {
-  name = Attack1.name;
+export class Attack implements Card {
+  name: string;
   kind = CardCategory.NormalCard;
-  constructor() { }
+  constructor(public readonly damage: number) { 
+    this.name = `${Attack.name}${damage}`
+  }
   effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
     return {
       from: cardIsUsed(input.from, this),
       to: {
         by: this,
-        health: -1,
+        health: -this.damage,
       }
     };
   }
 }
-
-// export class Attack2 implements Card {
-//   name = Attack2.name;
-//   kind = CardCategory.NormalCard;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     return {
-//       by: this,
-//       health: -2,
-//     };
-//   }
-// }
-
-// export class Attack3 implements Card {
-//   name = Attack3.name;
-//   kind = CardCategory.NormalCard;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     return {
-//       by: this,
-//       health: -3,
-//     };
-//   }
-// }
-
-// export class Attack4 implements Card {
-//   name = Attack4.name;
-//   kind = CardCategory.NormalCard;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     return {
-//       by: this,
-//       health: -4,
-//     };
-//   }
-// }
-
-// export class Attack5 implements Card {
-//   name = Attack5.name;
-//   kind = CardCategory.NormalCard;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     return {
-//       by: this,
-//       health: -5,
-//     };
-//   }
-// }
 
 // export class FollowUpAttack implements Card {
 //   name = FollowUpAttack.name;
@@ -208,7 +162,7 @@ export class QiFlow implements SelfCard {
   effect(input: EffectArguments): { from: CardEffect } | errors.InvalidBehavior {
     const err = sameOrigin(input)
     if (err) {
-      return err;
+      return err; 
     }
     const drawPile = input.from.getDrawPile()
     const last = drawPile.last();

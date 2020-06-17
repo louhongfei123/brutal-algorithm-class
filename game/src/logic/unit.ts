@@ -161,8 +161,6 @@ export class MainCharactor extends BaseUnit {
     if (!action) {
       throw new Error("unreachable");
     }
-    console.log("game logic received", action);
-    // this.actionTaken.put(action);
     return action;
   }
 

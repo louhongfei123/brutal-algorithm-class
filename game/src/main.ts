@@ -5,13 +5,10 @@ import CombatScene from "./scenes/CombatScene";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1600,
+  height: 1200,
   physics: {
     default: "arcade",
-    arcade: {
-      // gravity: { y: 200 }
-    },
   },
   scene: [CombatScene],
 };
