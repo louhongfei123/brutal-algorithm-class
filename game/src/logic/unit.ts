@@ -27,12 +27,14 @@ export abstract class BaseUnit implements Unit {
     }
   }
 
-  abstract async takeAction(combatState: CombatState): Promise<Action>;
+  abstract takeActionChan(combatState: CombatState);
 
   // resolves when it is this unit's turn
   abstract waitForTurn(): csp.Channel<undefined>;
 
   abstract async observeActionTaken(): Promise<Action>;
+
+  abstract async goToNextTurnChan();
 
   draw(n: number) {
     const draw1 = new card.Draw1();
@@ -137,6 +139,7 @@ export interface UserControlFunctions {
 
 export interface UserCommunications {
   actions: csp.Channel<Action>;
+  nextTurn: csp.Channel<undefined>;
 }
 
 export class MainCharactor extends BaseUnit {
@@ -153,15 +156,9 @@ export class MainCharactor extends BaseUnit {
     console.log(this.cards)
   }
 
-  // This function communicates with the Combat and user.
-  async takeAction(combatState: CombatState): Promise<Action> {
-    console.log("main charactor needs to take action");
+  async takeActionChan(combatState: CombatState) {
     await this.myTurn.put(undefined);
-    const action = await this.userCommunications.actions.pop();
-    if (!action) {
-      throw new Error("unreachable");
-    }
-    return action;
+    return this.userCommunications.actions
   }
 
   waitForTurn() {
@@ -177,16 +174,27 @@ export class MainCharactor extends BaseUnit {
     }
     return action;
   }
+
+  async goToNextTurn() {
+    await this.userCommunications.nextTurn.pop();
+  }
+  async goToNextTurnChan() {
+    return this.userCommunications.nextTurn;
+  }
 }
 
 export class AIUnit extends BaseUnit {
   readonly chan = csp.chan<undefined>();
   readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
+  readonly actionTakenMulticaster: csp.Multicaster<Action> = new csp.Multicaster(this.actionTaken)
+  readonly actionTakenObserverToUI = this.actionTakenMulticaster.copy()
+  readonly actionTakenObserverToCombat = this.actionTakenMulticaster.copy()
   constructor(public name: string, cards: CardInit) {
     super(name, cards);
   }
 
   async takeAction(combatState: CombatState): Promise<Action> {
+    throw new Error('deprecated');
     await log("AI is taking actions");
     await this.chan.put(undefined);
     const action = {
@@ -197,6 +205,16 @@ export class AIUnit extends BaseUnit {
     await this.actionTaken.put(action);
     return action;
   }
+  async takeActionChan(combatState: CombatState) {
+    await this.chan.put(undefined);
+    const action = {
+      from: this,
+      to: combatState.opponent,
+      card: math.randomPick(this.getHand())
+    };
+    await this.actionTaken.put(action);
+    return this.actionTakenObserverToCombat
+  }
 
   // There is no need to wait for AI.
   waitForTurn() {
@@ -204,7 +222,7 @@ export class AIUnit extends BaseUnit {
   }
 
   async observeActionTaken(): Promise<Action> {
-    const action = await this.actionTaken.pop();
+    const action = await this.actionTakenObserverToUI.pop();
     if (!action) {
       throw new Error("unreachable");
     }
@@ -213,5 +231,18 @@ export class AIUnit extends BaseUnit {
 
   getDeck() {
     return this.cards.drawPile;
+  }
+
+  async goToNextTurn() { }
+  goToNextTurnChan() {
+    const unblockingChan = csp.chan();
+    unblockingChan.close();
+    console.log(unblockingChan);
+    let f = async () => {
+      console.log(await unblockingChan.ready())
+      console.log(await unblockingChan.pop())
+    }
+    f();
+    return unblockingChan;
   }
 }

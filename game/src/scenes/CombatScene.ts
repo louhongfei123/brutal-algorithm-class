@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { AIUnit, MainCharactor } from "../logic/unit";
+import { MainCharactor } from "../logic/unit";
 import * as card from "../logic/card";
 import { Card, Action } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
@@ -18,14 +18,19 @@ export default class CombatScene extends Phaser.Scene {
   // @ts-ignore
   playerContainer: Phaser.GameObjects.Container;
   handCards: Phaser.GameObjects.GameObject[] = [];
+  // @ts-ignore
+  playerCollider: Phaser.Physics.Arcade.Collider;
+  // @ts-ignore
+  enermyCollider: Phaser.Physics.Arcade.Collider;
 
   userAction = new csp.UnbufferredChannel<Action>();
+  nextTurn = new csp.UnbufferredChannel<undefined>();
   readonly cardWidth = 90 * 2;
   readonly cardHeight = 148 * 2;
 
   constructor() {
     super("game-scene");
-  
+
     const drawPile = new Deque<Card>(
       new card.Attack(3),
       new card.Attack(4),
@@ -41,6 +46,7 @@ export default class CombatScene extends Phaser.Scene {
       },
       {
         actions: this.userAction,
+        nextTurn: this.nextTurn,
       }
     );
     // Start the campagin
@@ -65,43 +71,30 @@ export default class CombatScene extends Phaser.Scene {
       gameObject.x = dragX;
       gameObject.y = dragY;
     });
+    this.renderNextTurnButton();
     this.gameControlLoop();
   }
 
   async gameControlLoop() {
+    let f = async () => {
+      const change = this.currentCombat().onStateChange()
+      while (true) {
+        await change.pop()
+        this.refresh()
+      }
+    }
+    f();
+
     while (true) {
+      console.log("loop")
       await csp.select(
         [
-          [this.currentCombat().participantA.waitForTurn(), async (state) => {
-            const { handCards, enermy, player } = await this.refresh();
-            console.log(this.currentCombat().participantA);
-            console.log(this.currentCombat().participantA.getHand());
-            console.log(this.currentCombat().participantA.getDrawPile());
-            console.log(this.currentCombat().participantA.getDiscardPile());
-            const overlapListener = async (handCard, target) => {
-              let pointer = this.input.activePointer;
-              if (!pointer.isDown) {
-                // submit an action to the combat.
-                let action: Action = {
-                  from: this.currentCombat().getUnitOfThisTurn(),
-                  to: target.getData("model"),
-                  card: handCard.getData("model"),
-                };
-                console.log(action);
-                handCard.destroy();
-                overlapCollider1.destroy();
-                overlapCollider2.destroy();
-                await this.userAction.put(action);
-              }
-            }
-            const overlapCollider1 = this.physics.add.overlap(handCards, enermy, overlapListener);
-            const overlapCollider2 = this.physics.add.overlap(handCards, player, overlapListener);
-          }],
+          [this.currentCombat().participantA.waitForTurn(), async (state) => { }],
           [this.currentCombat().participantB.waitForTurn(), async () => {
             const { handCards, enermy, player } = await this.refresh();
-            console.log(this.currentCombat().participantA.getHand());
-            console.log(this.currentCombat().participantA.getDrawPile());
-            console.log(this.currentCombat().participantA.getDiscardPile());
+            // console.log(this.currentCombat().participantA.getHand());
+            // console.log(this.currentCombat().participantA.getDrawPile());
+            // console.log(this.currentCombat().participantA.getDiscardPile());
             // await csp.sleep(100000)
             const action = await this.currentCombat().participantB.observeActionTaken();
             // todo: render a card attack animation
@@ -129,7 +122,7 @@ export default class CombatScene extends Phaser.Scene {
             const text = unit === this.currentCombat().participantA ?
               this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
             text.setFontSize(70);
-            text.setOrigin(0.5)
+            text.setOrigin(0.5);
             await csp.sleep(2000);
             text.destroy();
             this.currentCombatIndex++;
@@ -141,12 +134,12 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async refresh() {
-    const handCards = await this.refreshHandCards(this, this.currentCombat());
     const enermy = await this.refreshEnermy(this, this.currentCombat());
     const player = await this.refreshPlayer(this, this.currentCombat());
     // todo: render draw pile
     const drawPile = await this.refreshDrawPile();
     const discardPile = this.refreshDiscardPile();
+    const handCards = await this.refreshHandCards(this, this.currentCombat());
     // todo: render discard pile
     return { handCards, enermy, player, drawPile, discardPile }
   }
@@ -212,14 +205,32 @@ export default class CombatScene extends Phaser.Scene {
     this.handCards = [];
 
     const hand = combat.participantA.getHand();
-    console.log(hand);
     for (let i = 0; i < hand.length; i++) {
-      const cardContainer = this.renderCard(hand[i], 200*2 + this.cardWidth * i, 550 * 2, this.cardWidth, this.cardHeight);
+      const cardContainer = this.renderCard(hand[i], 200 * 2 + this.cardWidth * i, 550 * 2, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();
       this.input.setDraggable(cardContainer);
       this.handCards.push(cardContainer);
     }
-    return new Phaser.GameObjects.Group(scene, this.handCards);
+    const handCardGroup = new Phaser.GameObjects.Group(scene, this.handCards);
+    if (this.currentCombat().getUnitOfThisTurn() === this.currentCombat().participantA) {
+      const overlapListener = async (handCard, target) => {
+        let pointer = this.input.activePointer;
+        if (!pointer.isDown) {
+          // submit an action to the combat.
+          let action: Action = {
+            from: this.currentCombat().getUnitOfThisTurn(),
+            to: target.getData("model"),
+            card: handCard.getData("model"),
+          };
+          console.log(action);
+          handCard.destroy();
+          await this.userAction.put(action);
+        }
+      }
+      this.enermyCollider = this.physics.add.overlap(handCardGroup, this.enermyContainer, overlapListener);
+      this.playerCollider = this.physics.add.overlap(handCardGroup, this.playerContainer, overlapListener);
+    }
+    return handCardGroup
   }
 
   async refreshEnermy(
@@ -292,9 +303,25 @@ export default class CombatScene extends Phaser.Scene {
     return container;
   }
 
+  renderNextTurnButton() {
+    const container = this.add.container(0, this.sys.game.canvas.height)
+    const rect = this.add.rectangle(150, -200, 250, 100, 0x6666ff)
+    const name = this.add.text(75, -220, `下一回合`)
+    name.setFontSize(40)
+    container.add(rect)
+    container.add(name)
+
+    rect.setInteractive()
+    rect.on('pointerdown', async (pointer) => {
+      this.enermyCollider.destroy();
+      this.playerCollider.destroy();
+      await this.nextTurn.put(undefined);
+    });
+
+    return container
+  }
+
   currentCombat(): Combat {
     return this.combats[this.currentCombatIndex];
   }
-
-  update() { }
 }

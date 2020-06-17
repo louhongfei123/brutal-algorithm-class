@@ -68,10 +68,13 @@ export interface CardInit {
 export interface Unit {
   cardEffects: Deque<CardEffect>;
   name: string
-  takeAction(combatState: CombatState): Promise<Action>;
+
+  // coordinations
+  takeActionChan(combatState: CombatState): Promise<csp.Channel<Action>>;
   // resolves when it is this unit's turn
   waitForTurn(): csp.Channel<undefined>;
   observeActionTaken(): Promise<Action>;
+  goToNextTurnChan(): Promise<csp.Channel<undefined>>;
   
   // mutations
   draw(n: number)

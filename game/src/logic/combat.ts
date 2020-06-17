@@ -1,11 +1,12 @@
 import * as csp from "../lib/csp";
+import { select } from "../lib/csp";
 import { Unit, CardEffect, Action } from "./interfaces";
 import { log } from "./logger";
 import * as errors from "./errors";
 import * as card from "./card";
 import { Deque } from './math';
 
-type CombatState = "taking action";
+type CombatState = "";
 
 export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
@@ -71,20 +72,39 @@ export class Combat {
     unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
 
     // taking action
-    await this.stateChange.put("taking action");
+    await this.stateChange.put("");
+    const actionTaken = await unit.takeActionChan({ opponent: this.getOpponent() })
+    const nT = await unit.goToNextTurnChan();
+    console.log(nT)
     while (true) {
-      const action = await unit.takeAction({ opponent: this.getOpponent() });
-      await log(
-        `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
-      );
-      const err = unit.use(action.card, action.to);
-      if (err instanceof errors.InvalidBehavior) {
-        console.log(`无法使用【${action.card.name}】`);
-        console.log(err.message)
-        console.log('请重新出牌')
-        continue;
+      const done = await select([
+        [
+          actionTaken, async (action) => {
+            if (!action) { throw new Error() }
+            await log(
+              `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
+            );
+            const err = unit.use(action.card, action.to);
+            if (err instanceof errors.InvalidBehavior) {
+              console.log(`无法使用【${action.card.name}】`);
+              console.log(err.message)
+              console.log('请重新出牌')
+            }
+            console.log(unit.getHand())
+            await this.stateChange.put("");
+            return false
+          }
+        ],
+        [
+          nT, async () => {
+            console.log("!!!")
+            return true;
+          }
+        ]
+      ])
+      if (done) {
+        break
       }
-      break;
     }
   }
 
@@ -109,7 +129,7 @@ export class Combat {
   }
 
   // Winner can loot 1 card from the looser
-  async loot(winner: Unit, looser: Unit) { 
+  async loot(winner: Unit, looser: Unit) {
     throw new Error()
   }
 }
