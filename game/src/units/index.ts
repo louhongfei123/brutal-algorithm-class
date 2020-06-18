@@ -15,7 +15,7 @@ export function SchoolBully(): AIUnit {
             ),
             equipped: new Deque<EquippmentCard>(
                 new card.Health(10),
-                new card.Agility(25),
+                new card.Agility(10),
             ),
         }
     );

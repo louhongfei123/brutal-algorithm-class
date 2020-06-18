@@ -15,3 +15,9 @@ export async function moveTo(scene, source, destination, speed, maxtime?): Promi
         }
     }
 }
+
+export async function renderMissed(scene) {
+    // todo
+    await csp.sleep(10000)
+
+}

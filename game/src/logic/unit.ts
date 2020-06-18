@@ -1,6 +1,6 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
-import { Unit, Card, CardInit, CombatState, Action, CardEffect } from "./interfaces";
+import { Unit, Card, CardInit, CombatState, Action, CardEffect, Missed } from "./interfaces";
 import * as math from './math';
 import { Deque } from './math';
 import { InvalidBehavior } from './errors';
@@ -31,28 +31,18 @@ export class MainCharactor extends BaseUnit {
 
   async takeActions(combatState: CombatState): Promise<void> {
     let done = false;
-    while(!done) {
+    while (!done) {
       done = await csp.select([
-        [this.userCommunications.actions, async(action) => {
+        [this.userCommunications.actions, async (action) => {
           const err = this.use(action.card, action.to)
           await combatState.stateChange.put()
           return false;
         }],
-        [this.userCommunications.nextTurn, async() => {
+        [this.userCommunications.nextTurn, async () => {
           return true;
         }]
       ]);
     }
-  }
-
-  // This function communicates with any outside system other than the Combat
-  // that is interested to observe action taken by this unit.
-  async observeActionTaken(): Promise<Action> {
-    const action = await this.actionTaken.pop();
-    if (!action) {
-      throw new Error("unreachable");
-    }
-    return action;
   }
 
   async goToNextTurn() {
@@ -77,30 +67,49 @@ export class AIUnit extends BaseUnit {
   }
 
   async takeActions(combatState: CombatState): Promise<void> {
-    while (true) {
-      const action = {
+    // find one valid action
+    let action: Action | undefined;
+    while (action === undefined) {
+      // const action = {
+      //   from: this,
+      //   to: combatState.opponent,
+      //   card: 
+      // };
+      const card: Card = math.randomPick(this.getHand());
+      // check if this action is valid
+      const err = card.effect({from: this, to: combatState.opponent})
+      if(err instanceof InvalidBehavior ) {
+        console.log(err);
+        continue;
+      }
+      action = {
         from: this,
         to: combatState.opponent,
-        card: math.randomPick(this.getHand())
-      };
-      // check is action valid
-      const err = this.use(action.card, action.to)
-      if (err instanceof InvalidBehavior) {
-        continue
+        card: card
       }
-      await this.actionTaken.put(action);
-      console.log('enermy');
-      await combatState.stateChange.put()
-      break
     }
+    await this.actionTaken.put(action);
   }
 
   async observeActionTaken(): Promise<Action> {
+    // todo: need to change to implementation to work with commit
     const action = await this.actionTakenObserverToUI.pop();
     if (!action) {
       throw new Error("unreachable");
     }
     return action;
+  }
+
+  // use(card: Card, to: Unit): InvalidBehavior | void {
+  //   // todo
+  // }
+
+  commit(action: Action): Missed | void {
+    const err = this.use(action.card, action.to)
+    if (err instanceof InvalidBehavior) {
+      throw err;
+    }
+    return err;
   }
 
   getDeck() {

@@ -1,11 +1,14 @@
 import Phaser from "phaser";
 import { MainCharactor } from "../logic/unit";
 import * as card from "../logic/card";
-import { Card, Action, EquippmentCard } from "../logic/interfaces";
+import {
+  Card, Action, EquippmentCard,
+  Missed
+} from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 
 import * as csp from "../lib/csp";
-import * as physics from "../physics";
+import * as ui from "../ui";
 import { Deque } from "../logic/math";
 import * as units from "../units";
 
@@ -86,7 +89,7 @@ export default class CombatScene extends Phaser.Scene {
       if (combat.hasWinner()) {
         console.log('hasWinner')
         const text =
-          this.currentCombat().hasWinner() === this.currentCombat().participantA ?
+          this.currentCombat().hasWinner() === this.currentCombat().player ?
             this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
         text.setFontSize(70);
         text.setOrigin(0.5);
@@ -95,9 +98,9 @@ export default class CombatScene extends Phaser.Scene {
         this.currentCombatIndex++;
         this.currentCombat().begin();
       }
-      else if (u === combat.participantB) {
+      else if (u === combat.enermy) {
         console.log('combat.getUnitOfThisTurn() === combat.participantB')
-        const action = await this.currentCombat().participantB.observeActionTaken();
+        const action = await combat.enermy.observeActionTaken();
         // todo: render a card attack animation
         // https://phaser.io/examples
         // @ts-ignore
@@ -108,13 +111,18 @@ export default class CombatScene extends Phaser.Scene {
           enermy.y,
           this.cardWidth,
           this.cardHeight)
-        await physics.moveTo(
+        await ui.moveTo(
           this,
           cardPlayedByEnermy,
           { x: 400 * 2, y: 150 * 2 },
           400
         );
         await csp.sleep(1000);
+        const isMissed = combat.enermy.commit(action);
+        if (isMissed instanceof Missed) {
+          console.log(isMissed)
+          await ui.renderMissed(this)
+        }
         cardPlayedByEnermy.destroy();
       } else {
         console.log('???')
@@ -134,7 +142,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   refreshDrawPile() {
-    const drawPile = this.currentCombat().participantA.getDrawPile();
+    const drawPile = this.currentCombat().player.getDrawPile();
     const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
     const rect = this.add.rectangle(-100, -100, 150, 300, 0x6666ff)
     const count = this.add.text(-115, -150, `${drawPile.length}`)
@@ -148,7 +156,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   refreshDiscardPile() {
-    const pile = this.currentCombat().participantA.getDiscardPile();
+    const pile = this.currentCombat().player.getDiscardPile();
     const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
     const rect = this.add.rectangle(-300, -100, 150, 300, 0x6666ff)
     const count = this.add.text(-315, -150, `${pile.length}`)
@@ -193,7 +201,7 @@ export default class CombatScene extends Phaser.Scene {
     }
     this.handCards = [];
 
-    const hand = combat.participantA.getHand();
+    const hand = combat.player.getHand();
     for (let i = 0; i < hand.length; i++) {
       const cardContainer = this.renderCard(hand[i], 200 * 2 + this.cardWidth * i, 550 * 2, this.cardWidth, this.cardHeight);
       cardContainer.setInteractive();
@@ -201,7 +209,7 @@ export default class CombatScene extends Phaser.Scene {
       this.handCards.push(cardContainer);
     }
     const handCardGroup = new Phaser.GameObjects.Group(scene, this.handCards);
-    if (this.currentCombat().getUnitOfThisTurn() === this.currentCombat().participantA) {
+    if (this.currentCombat().getUnitOfThisTurn() === this.currentCombat().player) {
       const overlapListener = async (handCard, target) => {
         let pointer = this.input.activePointer;
         if (!pointer.isDown) {
@@ -236,12 +244,12 @@ export default class CombatScene extends Phaser.Scene {
     enermy.setScale(0.6);
 
     // Add enermy text
-    const text = this.add.text(50, -75, combat.participantB.name);
+    const text = this.add.text(50, -75, combat.enermy.name);
     text.setFontSize(70);
 
     // Display enermy health point
-    const health = combat.participantB.getHealth();
-    const healthLimit = combat.participantB.getHealthLimit();
+    const health = combat.enermy.getHealth();
+    const healthLimit = combat.enermy.getHealthLimit();
     const healthText = this.add.text(
       -enermy.width * enermy.scale / 4,
       -enermy.height * enermy.scale / 1.5,
@@ -253,7 +261,7 @@ export default class CombatScene extends Phaser.Scene {
     container.add(enermy)
     container.add(text)
     container.add(healthText)
-    container.setData("model", combat.participantB);
+    container.setData("model", combat.enermy);
 
     this.physics.add.existing(container);
     this.enermyContainer = container;
@@ -275,8 +283,8 @@ export default class CombatScene extends Phaser.Scene {
     player.setInteractive();
 
     // Display health point
-    const health = combat.participantA.getHealth();
-    const healthLimit = combat.participantA.getHealthLimit();
+    const health = combat.player.getHealth();
+    const healthLimit = combat.player.getHealthLimit();
     const healthText = this.add.text(
       -player.width * player.scale / 4,
       -player.height * player.scale / 1.8,
@@ -286,7 +294,7 @@ export default class CombatScene extends Phaser.Scene {
 
     container.add(healthText);
     container.add(player);
-    container.setData("model", combat.participantA);
+    container.setData("model", combat.player);
     this.physics.add.existing(container);
     this.playerContainer = container;
     return container;

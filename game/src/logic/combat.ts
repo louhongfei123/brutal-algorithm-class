@@ -1,61 +1,62 @@
 import * as csp from "../lib/csp";
 import { select } from "../lib/csp";
+import { AIUnit } from "../logic/unit";
 import { Unit, CombatState } from "./interfaces";
 import { log } from "./logger";
 
 
 
 export class Combat {
-  unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
+  unitOfThisTurn = this.player; // Participatn A defaults to the user.
   private stateChange = new csp.UnbufferredChannel<void>();
   private multicaster = new csp.Multicaster<void>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
-  constructor(public participantA: Unit, public participantB: Unit) { }
+  constructor(public player: Unit, public enermy: AIUnit) { }
 
   onStateChange(): csp.Channel<void | undefined> {
     return this.multicaster.copy();
   }
 
   getUnitOfThisTurn(): Unit {
-    if (this.unitOfThisTurn === this.participantA) {
-      return this.participantA;
+    if (this.unitOfThisTurn === this.player) {
+      return this.player;
     } else {
-      return this.participantB;
+      return this.enermy;
     }
   }
 
   getOpponent(): Unit {
-    if (this.unitOfThisTurn === this.participantA) {
-      return this.participantB;
+    if (this.unitOfThisTurn === this.player) {
+      return this.enermy;
     } else {
-      return this.participantA;
+      return this.player;
     }
   }
 
   changeTurn() {
-    if (this.unitOfThisTurn === this.participantA) {
-      this.unitOfThisTurn = this.participantB;
+    if (this.unitOfThisTurn === this.player) {
+      this.unitOfThisTurn = this.enermy;
     } else {
-      this.unitOfThisTurn = this.participantA;
+      this.unitOfThisTurn = this.player;
     }
   }
 
   hasWinner(): Unit | undefined {
-    if (this.participantA.getHealth() <= 0) {
-      return this.participantB;
-    } else if (this.participantB.getHealth() <= 0) {
-      return this.participantA;
+    if (this.player.getHealth() <= 0) {
+      return this.enermy;
+    } else if (this.enermy.getHealth() <= 0) {
+      return this.player;
     } else {
       return undefined;
     }
   }
 
   getLooser(): Unit {
-    if (this.hasWinner() === this.participantA) {
-      return this.participantB;
+    if (this.hasWinner() === this.player) {
+      return this.enermy;
     } else {
-      return this.participantA;
+      return this.player;
     }
   }
 

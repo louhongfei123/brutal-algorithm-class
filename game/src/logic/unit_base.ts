@@ -2,6 +2,7 @@ import * as csp from "../lib/csp";
 import { Combat } from './combat';
 import {
     Unit, Card, CardInit, CombatState, Action, CardEffect,
+    Missed
 } from "./interfaces";
 import * as math from './math';
 import { Deque } from './math';
@@ -30,7 +31,6 @@ export abstract class BaseUnit implements Unit {
     }
 
     abstract takeActions(combatState: CombatState): Promise<void>;
-    abstract async observeActionTaken(): Promise<Action>;
 
     draw(n: number) {
         const draw1 = new card.Draw1();
@@ -59,7 +59,7 @@ export abstract class BaseUnit implements Unit {
         this.cardEffects.push(effect.to);
     }
 
-    use(card: Card, to: Unit): InvalidBehavior | void {
+    use(card: Card, to: Unit): InvalidBehavior | Missed | void {
         const effects = card.effect({ from: this, to: to });
         if (effects instanceof Error) {
             return effects
@@ -68,13 +68,14 @@ export abstract class BaseUnit implements Unit {
         if (effects.from) {
             this.cardEffects.push(effects.from);
         }
+        let ret: Missed;
         if (effects.to) {
             if (card.kind === 'AttackCard') {
                 // calculate hit rate
                 if (to.isHit(this)) {
                     to.cardEffects.push(effects.to);
                 } else {
-                    console.log('missed');
+                    ret = new Missed();
                 }
             } else {
                 to.cardEffects.push(effects.to);
@@ -83,6 +84,7 @@ export abstract class BaseUnit implements Unit {
         if (!effects.from && !effects.to) {
             throw new Error();
         }
+        return ret;
     }
 
     isHit(from: Unit): boolean {

@@ -70,18 +70,20 @@ export interface CardEffect {
   discardPile?: Deque<Card>
 }
 
+
+export class Missed {}
+
 export interface Unit {
   cardEffects: Deque<CardEffect>;
   name: string
 
   // coordinations
   takeActions(combatState: CombatState): Promise<void>;
-  observeActionTaken(): Promise<Action>;
   
   // mutations
   draw(n: number)
   shuffle()
-  use(card: Card, to: Unit, combat: Combat): InvalidBehavior | void
+  use(card: Card, to: Unit, combat: Combat): InvalidBehavior | Missed| void
   
   // observations
   getHand(): Deque<Card>
