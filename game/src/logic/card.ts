@@ -15,7 +15,7 @@ import * as errors from "./errors";
 //////////////////
 export class Attack implements Card {
   name: string;
-  kind = CardCategory.NormalCard;
+  kind = CardCategory.AttackCard;
   constructor(public readonly damage: number) { 
     this.name = `${Attack.name}${damage}`
   }
@@ -218,6 +218,27 @@ export class Health extends EquippmentCard {
         by: this,
         health: this.health,
         healthLimit: this.health,
+      }
+    };
+  }
+}
+
+export class Agility extends EquippmentCard {
+  constructor(public agility: number) {
+    super();
+  }
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    const err = sameOrigin(input)
+    if (err) {
+      return err;
+    }
+    return {
+      from: {
+        by: this
+      },
+      to: {
+        by: this,
+        agility: this.agility,
       }
     };
   }

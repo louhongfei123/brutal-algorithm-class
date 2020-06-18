@@ -2,9 +2,12 @@ import * as math from "./math";
 import { Deque } from "./math";
 import * as csp from "../lib/csp";
 import { InvalidBehavior } from './errors';
+import { Combat } from './combat';
+
 
 export enum CardCategory {
   NormalCard = "NormalCard",
+  AttackCard = "AttackCard",
   EquippmentCard = "EquippmentCard",
 }
 
@@ -23,18 +26,6 @@ export interface Card {
   name: string;
   desp?: string;
   effect(input: EffectArguments): { from?: CardEffect, to?: CardEffect } | InvalidBehavior;
-}
-
-// A difference vector that represents the change of state of the unit.
-export interface CardEffect {
-  by: Card
-  // delta
-  health?: number
-  healthLimit?: number
-  // current state
-  handCard?: Deque<Card>
-  drawPile?: Deque<Card>
-  discardPile?: Deque<Card>
 }
 
 export interface NormalCard extends Card {
@@ -56,6 +47,7 @@ export interface Action extends EffectArguments {
 
 export interface CombatState {
   opponent: Unit;
+  stateChange: csp.Channel<void>;
 }
 
 export interface CardInit {
@@ -65,21 +57,31 @@ export interface CardInit {
   readonly equipped: math.Deque<EquippmentCard>;
 }
 
+// A difference vector that represents the change of state of the unit.
+export interface CardEffect {
+  by: Card
+  // delta
+  health?: number
+  healthLimit?: number
+  agility?: number
+  // current state
+  handCard?: Deque<Card>
+  drawPile?: Deque<Card>
+  discardPile?: Deque<Card>
+}
+
 export interface Unit {
   cardEffects: Deque<CardEffect>;
   name: string
 
   // coordinations
-  takeActionChan(combatState: CombatState): Promise<csp.Channel<Action>>;
-  // resolves when it is this unit's turn
-  waitForTurn(): csp.Channel<undefined>;
+  takeActions(combatState: CombatState): Promise<void>;
   observeActionTaken(): Promise<Action>;
-  goToNextTurnChan(): Promise<csp.Channel<undefined>>;
   
   // mutations
   draw(n: number)
   shuffle()
-  use(card: Card, to: Unit): InvalidBehavior | undefined
+  use(card: Card, to: Unit, combat: Combat): InvalidBehavior | void
   
   // observations
   getHand(): Deque<Card>
@@ -87,5 +89,8 @@ export interface Unit {
   getDiscardPile(): Deque<Card>
   getHealth(): number
   getHealthLimit(): number
+  // Agility determines the hit rate and the action order
+  getAgility(): number
+  isHit(from: Unit): boolean
   isDead(): boolean
 }

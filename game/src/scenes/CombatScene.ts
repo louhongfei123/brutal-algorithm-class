@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { MainCharactor } from "../logic/unit";
 import * as card from "../logic/card";
-import { Card, Action } from "../logic/interfaces";
+import { Card, Action, EquippmentCard } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 
 import * as csp from "../lib/csp";
@@ -42,7 +42,10 @@ export default class CombatScene extends Phaser.Scene {
       "主角",
       {
         drawPile: drawPile,
-        equipped: new Deque(new card.Health(20)),
+        equipped: new Deque<EquippmentCard>(
+          new card.Health(20),
+          new card.Agility(50)
+        ),
       },
       {
         actions: this.userAction,
@@ -76,60 +79,46 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async gameControlLoop() {
-    let f = async () => {
-      const change = this.currentCombat().onStateChange()
-      while (true) {
-        await change.pop()
-        this.refresh()
+    for await (let change of this.currentCombat().onStateChange()) {
+      const combat = this.currentCombat();
+      const u = combat.getUnitOfThisTurn();
+      const { handCards, enermy, player } = await this.refresh();
+      if (combat.hasWinner()) {
+        console.log('hasWinner')
+        const text =
+          this.currentCombat().hasWinner() === this.currentCombat().participantA ?
+            this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
+        text.setFontSize(70);
+        text.setOrigin(0.5);
+        await csp.sleep(2000);
+        text.destroy();
+        this.currentCombatIndex++;
+        this.currentCombat().begin();
       }
-    }
-    f();
-
-    while (true) {
-      console.log("loop")
-      await csp.select(
-        [
-          [this.currentCombat().participantA.waitForTurn(), async (state) => { }],
-          [this.currentCombat().participantB.waitForTurn(), async () => {
-            const { handCards, enermy, player } = await this.refresh();
-            // console.log(this.currentCombat().participantA.getHand());
-            // console.log(this.currentCombat().participantA.getDrawPile());
-            // console.log(this.currentCombat().participantA.getDiscardPile());
-            // await csp.sleep(100000)
-            const action = await this.currentCombat().participantB.observeActionTaken();
-            // todo: render a card attack animation
-            // https://phaser.io/examples
-            // @ts-ignore
-            const body: Phaser.Physics.Arcade.Body = enermy.body
-            const cardPlayedByEnermy = this.renderCard(
-              action.card,
-              enermy.x,
-              enermy.y,
-              this.cardWidth,
-              this.cardHeight)
-            await physics.moveTo(
-              this,
-              cardPlayedByEnermy,
-              { x: 400 * 2, y: 150 * 2 },
-              400
-            );
-            await csp.sleep(1000);
-            cardPlayedByEnermy.destroy();
-          }],
-          [this.currentCombat().waitForWinner(), async (unit) => {
-            // console.log("winner", unit);
-            // render
-            const text = unit === this.currentCombat().participantA ?
-              this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
-            text.setFontSize(70);
-            text.setOrigin(0.5);
-            await csp.sleep(2000);
-            text.destroy();
-            this.currentCombatIndex++;
-            this.currentCombat().begin();
-          }]
-        ]
-      );
+      else if (u === combat.participantB) {
+        console.log('combat.getUnitOfThisTurn() === combat.participantB')
+        const action = await this.currentCombat().participantB.observeActionTaken();
+        // todo: render a card attack animation
+        // https://phaser.io/examples
+        // @ts-ignore
+        const body: Phaser.Physics.Arcade.Body = enermy.body
+        const cardPlayedByEnermy = this.renderCard(
+          action.card,
+          enermy.x,
+          enermy.y,
+          this.cardWidth,
+          this.cardHeight)
+        await physics.moveTo(
+          this,
+          cardPlayedByEnermy,
+          { x: 400 * 2, y: 150 * 2 },
+          400
+        );
+        await csp.sleep(1000);
+        cardPlayedByEnermy.destroy();
+      } else {
+        console.log('???')
+      }
     }
   }
 
@@ -194,7 +183,7 @@ export default class CombatScene extends Phaser.Scene {
     return cardContainer;
   }
 
-  async refreshHandCards(
+  refreshHandCards(
     scene: Phaser.Scene,
     combat: Combat
   ): Promise<Phaser.GameObjects.Group> {
@@ -313,6 +302,7 @@ export default class CombatScene extends Phaser.Scene {
 
     rect.setInteractive()
     rect.on('pointerdown', async (pointer) => {
+      console.log('clicked')
       this.enermyCollider.destroy();
       this.playerCollider.destroy();
       await this.nextTurn.put(undefined);

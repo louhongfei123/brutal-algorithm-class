@@ -11,8 +11,8 @@ describe('Bug Hunt', () => {
   it('has cards in the draw pile at the beginning', () => {
 
     const deck = new Deque<Card>(
-      new card.Attack1(),
-      new card.Attack1(),
+      new card.Attack(1),
+      new card.Attack(1),
       new card.QiFlow()
     )
     const mainC = new MainCharactor(
@@ -50,8 +50,8 @@ describe('Bug Hunt', () => {
   it('test 2', () => {
 
     const deck = new Deque<Card>(
-      new card.Attack1(),
-      new card.Attack1(),
+      new card.Attack(1),
+      new card.Attack(1),
       new card.QiFlow()
     )
     const mainC = new MainCharactor(

@@ -1,6 +1,7 @@
 import { AIUnit } from "../logic/unit";
 import * as card from "../logic/card";
 import { Deque } from "../logic/math";
+import { EquippmentCard } from "../logic/interfaces"
 
 
 export function SchoolBully(): AIUnit {
@@ -12,8 +13,9 @@ export function SchoolBully(): AIUnit {
                 new card.Attack(4),
                 new card.Attack(5),
             ),
-            equipped: new Deque(
+            equipped: new Deque<EquippmentCard>(
                 new card.Health(10),
+                new card.Agility(25),
             ),
         }
     );

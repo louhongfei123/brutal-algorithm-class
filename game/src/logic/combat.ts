@@ -1,22 +1,19 @@
 import * as csp from "../lib/csp";
 import { select } from "../lib/csp";
-import { Unit, CardEffect, Action } from "./interfaces";
+import { Unit, CombatState } from "./interfaces";
 import { log } from "./logger";
-import * as errors from "./errors";
-import * as card from "./card";
-import { Deque } from './math';
 
-type CombatState = "";
+
 
 export class Combat {
   unitOfThisTurn = this.participantA; // Participatn A defaults to the user.
-  private stateChange = new csp.UnbufferredChannel<CombatState>();
-  private multicaster = new csp.Multicaster<CombatState>(this.stateChange);
+  private stateChange = new csp.UnbufferredChannel<void>();
+  private multicaster = new csp.Multicaster<void>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
   constructor(public participantA: Unit, public participantB: Unit) { }
 
-  onStateChange(): csp.Channel<CombatState> {
+  onStateChange(): csp.Channel<void | undefined> {
     return this.multicaster.copy();
   }
 
@@ -63,7 +60,7 @@ export class Combat {
   }
 
   async takeTurn(unit: Unit) {
-    // shuffling from discard pile if needed
+    // shuffling from discard pile if neededFgoToNextTurnChan
     if (unit.getDrawPile().length === 0) {
       unit.shuffle()
     }
@@ -72,40 +69,8 @@ export class Combat {
     unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
 
     // taking action
-    await this.stateChange.put("");
-    const actionTaken = await unit.takeActionChan({ opponent: this.getOpponent() })
-    const nT = await unit.goToNextTurnChan();
-    console.log(nT)
-    while (true) {
-      const done = await select([
-        [
-          actionTaken, async (action) => {
-            if (!action) { throw new Error() }
-            await log(
-              `${action.from.name} used 【${action.card.name}】 against ${action.to.name}`
-            );
-            const err = unit.use(action.card, action.to);
-            if (err instanceof errors.InvalidBehavior) {
-              console.log(`无法使用【${action.card.name}】`);
-              console.log(err.message)
-              console.log('请重新出牌')
-            }
-            console.log(unit.getHand())
-            await this.stateChange.put("");
-            return false
-          }
-        ],
-        [
-          nT, async () => {
-            console.log("!!!")
-            return true;
-          }
-        ]
-      ])
-      if (done) {
-        break
-      }
-    }
+    await this.stateChange.put();
+    await unit.takeActions({ opponent: this.getOpponent(), stateChange: this.stateChange })
   }
 
   async begin() {
