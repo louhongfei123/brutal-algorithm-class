@@ -45,8 +45,9 @@ export default class CombatScene extends Phaser.Scene {
 
     const drawPile = new Deque<Card>(
       new card.Attack(10),
+      new card.FollowUpAttack(),
       new card.Attack(10),
-      new card.QiFlow()
+      new card.QiFlow(),
     );
     console.log(drawPile);
     drawPile.last();

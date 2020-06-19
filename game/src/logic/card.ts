@@ -21,39 +21,59 @@ export class Attack implements Card {
   }
   effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
     return {
-      from: cardIsUsed(input.from, this),
-      to: {
-        by: this,
-        health: -this.damage,
-      }
+      from: this.effectOnSource(input.from),
+      to: this.effectOnTarget(input.to)
     };
   }
+
+  effectOnSource(unit: Unit): CardEffect {
+    return cardIsUsed(unit, this)
+  }
+
+  effectOnTarget(unit: Unit) {
+    return {
+      by: this,
+      health: -this.damage,
+    }
+  }
+
 }
 
-// export class FollowUpAttack implements Card {
-//   name = FollowUpAttack.name;
-//   desp =
-//     "If the previous used/discard card is an attack, duplicate its effect and produce additional damage";
-//   kind = CardCategory.NormalCard;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     if (input.from.getDiscardPile().length === 0) {
-//       return new errors.InvalidBehavior("FollowUpAttack: There is no card on the top of discard pile");
-//     }
-//     let eff = input.from.getDiscardPile()[
-//       input.from.getDiscardPile().length - 1
-//     ].effect(input);
-//     if (eff instanceof errors.InvalidBehavior) {
-//       return eff;
-//     }
-//     if (!eff.health) {
-//       throw new Error();
-//     }
-//     // todo: check card type to be attack
-//     eff.health -= 1; // Follow up attack produce 1 more attack point on top of the previous attack.
-//     return eff;
-//   }
-// }
+export class FollowUpAttack implements Card {
+  name = FollowUpAttack.name;
+  desp =
+    "If the previous used card is an attack, duplicate its effect and produce additional damage";
+  kind = CardCategory.NormalCard;
+  constructor() { }
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    const discardPile = input.from.getDiscardPile();
+    if (discardPile.length === 0) {
+      return new errors.InvalidBehavior("FollowUpAttack: There is no card on the top of discard pile");
+    }
+    const last = discardPile.last();
+    if(!last) {
+      throw new Error();
+    }
+    if(last.kind !== CardCategory.AttackCard) {
+      return new errors.InvalidBehavior("FollowUpAttack: The previous used card is not an Attack Card")
+    }
+    if(last instanceof Attack) {
+      let effectOnTarget = last.effectOnTarget(input.to);
+      if(effectOnTarget instanceof errors.InvalidBehavior) {
+        return effectOnTarget
+      }
+      // todo: check card type to be attack
+      effectOnTarget.health += 1;
+      return {
+        from:cardIsUsed(input.to, this),
+        to: effectOnTarget
+      };
+    } else {
+      throw new Error('unreachable');
+    }
+
+  }
+}
 
 // export class QiAttack implements Card {
 //   name = QiAttack.name
@@ -182,7 +202,7 @@ export class QiFlow implements SelfCard {
   }
 }
 
-function cardIsUsed(unit: Unit, card: Card) {
+function cardIsUsed(unit: Unit, card: Card): CardEffect {
   const hand = unit.getHand();
   const discard = unit.getDiscardPile();
   const i = hand.indexOf(card);
