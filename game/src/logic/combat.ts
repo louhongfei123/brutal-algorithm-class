@@ -9,13 +9,18 @@ import { log } from "./logger";
 export class Combat {
   unitOfThisTurn = this.player; // Participatn A defaults to the user.
   private stateChange = new csp.UnbufferredChannel<void>();
-  private multicaster = new csp.Multicaster<void>(this.stateChange);
+  // private multicaster = new csp.Multicaster<void>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
-  constructor(public player: Unit, public enermy: AIUnit) { }
+  constructor(public player: Unit, public enermy: AIUnit) {
+    // @ts-ignore
+    this.stateChange.id = Math.floor(Math.random() * 100)
+    console.log(this.stateChange);
+    console.log(this.stateChange.popActions.length)
+  }
 
-  onStateChange(): csp.Channel<void | undefined> {
-    return this.multicaster.copy();
+  onStateChange(): csp.Channel<void> {
+    return this.stateChange
   }
 
   getUnitOfThisTurn(): Unit {
@@ -88,7 +93,13 @@ export class Combat {
     await this.stateChange.close();
     log(`${winner.name} is the Winner!`);
     await this.waitForWinnerChan.put(winner);
+    await this.end();
     this.loot(winner, this.getLooser());
+  }
+
+  async end() {
+    await this.stateChange.close()
+    await this.waitForWinnerChan.close();
   }
 
   waitForWinner(): csp.Channel<Unit> {

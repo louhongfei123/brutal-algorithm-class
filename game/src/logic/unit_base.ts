@@ -70,11 +70,14 @@ export abstract class BaseUnit implements Unit {
         }
         let ret: Missed | undefined = undefined;
         if (effects.to) {
+            console.log('to')
             if (card.kind === 'AttackCard') {
                 // calculate hit rate
                 if (to.isHit(this)) {
+                    console.log('hit')
                     to.cardEffects.push(effects.to);
                 } else {
+                    console.log('missed')
                     ret = new Missed();
                 }
             } else {

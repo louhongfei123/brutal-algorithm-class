@@ -93,14 +93,19 @@ export default class CombatScene extends Phaser.Scene {
 
   async gameControlLoop() {
     let onStateChangeChan = this.currentCombat().onStateChange(); 
+    console.log(onStateChangeChan);
     while (true) {
+      console.log('waiting for state change', onStateChangeChan);
       let change = await onStateChangeChan.pop();
+      console.log('state has been changed');
       if(onStateChangeChan.closed()) {
         throw new Error('unreachable')
       }
       const combat = this.currentCombat();
       const u = combat.getUnitOfThisTurn();
+      console.log('refreshing');
       const { handCardGroup, enermy, player } = await this.refresh();
+      console.log('refreshed');
       if (combat.hasWinner()) {
         console.log('hasWinner')
         const text =
@@ -144,13 +149,14 @@ export default class CombatScene extends Phaser.Scene {
         cardPlayedByEnermy.destroy();
       }
       else if (u === combat.player) {
-        console.log(u);
+        console.log('player');
         playerHelper.setNextTurnButtonInteractive(this);
         playerHelper.setHandCardsInteractive(this);
       }
       else {
         console.log('should not');
       }
+      console.log('end of loop');
     }
     throw new Error('12321321');
   }

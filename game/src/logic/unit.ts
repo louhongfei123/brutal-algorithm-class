@@ -32,13 +32,19 @@ export class MainCharactor extends BaseUnit {
   async takeActions(combatState: CombatState): Promise<void> {
     let done = false;
     while (!done) {
+      console.log('player is thinking');
       done = await csp.select([
         [this.userCommunications.actions, async (action) => {
+          console.log('userCommunications.actions');
           const err = this.use(action.card, action.to)
+          console.log(err);
+          console.log(combatState.stateChange, 'telling the UI the action has been evaluated');
           await combatState.stateChange.put()
+          console.log('the UI has received the msg');
           return false;
         }],
         [this.userCommunications.nextTurn, async () => {
+          console.log('userCommunications.nextTurn')
           return true;
         }]
       ]);

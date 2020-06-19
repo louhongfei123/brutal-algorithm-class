@@ -102,9 +102,10 @@ export function setHandCardsInteractive(scene: CombatScene) {
                     to: target.getData("model"),
                     card: handCard.getData("model"),
                 };
-                console.log(action);
                 handCard.destroy();
+                console.log(action, 'telling unit the action is taken');
                 await scene.userAction.put(action);
+                console.log('the unit has received the action');
             }
         }
         scene.enermyCollider = scene.physics.add.overlap(scene.handCardGroup, scene.enermyContainer, overlapListener);
