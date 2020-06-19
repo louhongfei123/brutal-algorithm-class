@@ -114,7 +114,7 @@ export default class CombatScene extends Phaser.Scene {
             await ui.renderLost(this, 3000)
         
         console.log('wait for current combat to finish');
-        await waitForCombat;
+        await waitForCombat;  // todo: debug
         console.log('current combat is finished');
         this.currentCombatIndex++;
         console.log('next combat');

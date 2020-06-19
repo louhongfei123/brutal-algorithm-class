@@ -108,7 +108,8 @@ export class Combat {
 
   // Winner can loot 1 card from the looser
   async loot(winner: Unit, looser: Unit) {
-    throw new Error()
+    console.log('loot is not done yet');
+    // throw new Error()
   }
 }
 
