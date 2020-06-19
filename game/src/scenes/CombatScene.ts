@@ -11,6 +11,8 @@ import * as csp from "../lib/csp";
 import * as ui from "../ui";
 import { Deque } from "../logic/math";
 import * as units from "../units";
+import * as playerHelper from "./player";
+import * as enermyHelper from "./enermy";
 
 
 export default class CombatScene extends Phaser.Scene {
@@ -25,6 +27,13 @@ export default class CombatScene extends Phaser.Scene {
   playerCollider: Phaser.Physics.Arcade.Collider;
   // @ts-ignore
   enermyCollider: Phaser.Physics.Arcade.Collider;
+  // @ts-ignore
+  nextTurnButton: {
+    conatiner: Phaser.GameObjects.Container;
+    rect: Phaser.GameObjects.Rectangle
+  }
+  // @ts-ignore
+  handCardGroup: Phaser.GameObjects.Group
 
   userAction = new csp.UnbufferredChannel<Action>();
   nextTurn = new csp.UnbufferredChannel<undefined>();
@@ -42,12 +51,12 @@ export default class CombatScene extends Phaser.Scene {
     console.log(drawPile);
     drawPile.last();
     const mainC = new MainCharactor(
-      "主角",
+      "Player",
       {
         drawPile: drawPile,
         equipped: new Deque<EquippmentCard>(
-          new card.Health(20),
-          new card.Agility(50)
+          new card.Health(10),
+          new card.Agility(30)
         ),
       },
       {
@@ -77,7 +86,7 @@ export default class CombatScene extends Phaser.Scene {
       gameObject.x = dragX;
       gameObject.y = dragY;
     });
-    this.renderNextTurnButton();
+    this.nextTurnButton = playerHelper.renderNextTurnButton(this);
     this.gameControlLoop();
   }
 
@@ -85,17 +94,16 @@ export default class CombatScene extends Phaser.Scene {
     for await (let change of this.currentCombat().onStateChange()) {
       const combat = this.currentCombat();
       const u = combat.getUnitOfThisTurn();
-      const { handCards, enermy, player } = await this.refresh();
+      const { handCardGroup, enermy, player } = await this.refresh();
       if (combat.hasWinner()) {
         console.log('hasWinner')
         const text =
           this.currentCombat().hasWinner() === this.currentCombat().player ?
-            this.add.text(400, 200, 'Victory') : this.add.text(400, 200, 'Looser');
-        text.setFontSize(70);
-        text.setOrigin(0.5);
-        await csp.sleep(2000);
-        text.destroy();
+            await ui.renderVictory(this, 1500) :
+            await ui.renderLost(this, 1500)
+
         this.currentCombatIndex++;
+        console.log('next combat');
         this.currentCombat().begin();
       }
       else if (u === combat.enermy) {
@@ -117,56 +125,37 @@ export default class CombatScene extends Phaser.Scene {
           { x: 400 * 2, y: 150 * 2 },
           400
         );
-        await csp.sleep(1000);
         const isMissed = combat.enermy.commit(action);
+        const waitDuration = 1500;
         if (isMissed instanceof Missed) {
           console.log(isMissed)
-          await ui.renderMissed(this)
+          await ui.renderMissed(this, waitDuration)
+        } else {
+          await csp.sleep(waitDuration);
         }
+
         cardPlayedByEnermy.destroy();
-      } else {
-        console.log('???')
+      }
+      else if (u === combat.player) {
+        console.log(u);
+        playerHelper.setNextTurnButtonInteractive(this);
+        playerHelper.setHandCardsInteractive(this);
+      }
+      else {
+        console.log('should not');
       }
     }
   }
 
   async refresh() {
-    const enermy = await this.refreshEnermy(this, this.currentCombat());
-    const player = await this.refreshPlayer(this, this.currentCombat());
+    const enermy = await enermyHelper.refreshEnermy(this, this.currentCombat());
+    const player = await playerHelper.refreshPlayer(this, this.currentCombat());
     // todo: render draw pile
-    const drawPile = await this.refreshDrawPile();
-    const discardPile = this.refreshDiscardPile();
-    const handCards = await this.refreshHandCards(this, this.currentCombat());
+    const drawPile = await playerHelper.refreshDrawPile(this);
+    const discardPile = playerHelper.refreshDiscardPile(this);
+    this.handCardGroup = await playerHelper.refreshHandCards(this, this.currentCombat());
     // todo: render discard pile
-    return { handCards, enermy, player, drawPile, discardPile }
-  }
-
-  refreshDrawPile() {
-    const drawPile = this.currentCombat().player.getDrawPile();
-    const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
-    const rect = this.add.rectangle(-100, -100, 150, 300, 0x6666ff)
-    const count = this.add.text(-115, -150, `${drawPile.length}`)
-    count.setFontSize(50)
-    const name = this.add.text(-160, -220, `抽牌堆`)
-    name.setFontSize(40)
-    container.add(rect)
-    container.add(count)
-    container.add(name)
-    return drawPile
-  }
-
-  refreshDiscardPile() {
-    const pile = this.currentCombat().player.getDiscardPile();
-    const container = this.add.container(this.sys.game.canvas.width, this.sys.game.canvas.height)
-    const rect = this.add.rectangle(-300, -100, 150, 300, 0x6666ff)
-    const count = this.add.text(-315, -150, `${pile.length}`)
-    count.setFontSize(50)
-    const name = this.add.text(-360, -220, `弃牌堆`)
-    name.setFontSize(40)
-    container.add(rect)
-    container.add(count)
-    container.add(name)
-    return pile
+    return { handCardGroup: this.handCardGroup, enermy, player, drawPile, discardPile }
   }
 
   renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
@@ -189,134 +178,6 @@ export default class CombatScene extends Phaser.Scene {
     this.physics.add.existing(cardContainer);
     cardContainer.setData("model", card);
     return cardContainer;
-  }
-
-  refreshHandCards(
-    scene: Phaser.Scene,
-    combat: Combat
-  ): Promise<Phaser.GameObjects.Group> {
-    // reset hand cards references
-    for (let card of this.handCards) {
-      card.destroy();
-    }
-    this.handCards = [];
-
-    const hand = combat.player.getHand();
-    for (let i = 0; i < hand.length; i++) {
-      const cardContainer = this.renderCard(hand[i], 200 * 2 + this.cardWidth * i, 550 * 2, this.cardWidth, this.cardHeight);
-      cardContainer.setInteractive();
-      this.input.setDraggable(cardContainer);
-      this.handCards.push(cardContainer);
-    }
-    const handCardGroup = new Phaser.GameObjects.Group(scene, this.handCards);
-    if (this.currentCombat().getUnitOfThisTurn() === this.currentCombat().player) {
-      const overlapListener = async (handCard, target) => {
-        let pointer = this.input.activePointer;
-        if (!pointer.isDown) {
-          // submit an action to the combat.
-          let action: Action = {
-            from: this.currentCombat().getUnitOfThisTurn(),
-            to: target.getData("model"),
-            card: handCard.getData("model"),
-          };
-          console.log(action);
-          handCard.destroy();
-          await this.userAction.put(action);
-        }
-      }
-      this.enermyCollider = this.physics.add.overlap(handCardGroup, this.enermyContainer, overlapListener);
-      this.playerCollider = this.physics.add.overlap(handCardGroup, this.playerContainer, overlapListener);
-    }
-    return handCardGroup
-  }
-
-  async refreshEnermy(
-    scene: Phaser.Scene,
-    combat: Combat
-  ): Promise<Phaser.GameObjects.Container> {
-    if (this.enermyContainer) {
-      this.enermyContainer.destroy();
-    }
-    const container = this.add.container(650 * 2, 250 * 2);
-
-    // Add enermy image
-    const enermy = this.add.image(0, 0, "girl_1");
-    enermy.setScale(0.6);
-
-    // Add enermy text
-    const text = this.add.text(50, -75, combat.enermy.name);
-    text.setFontSize(70);
-
-    // Display enermy health point
-    const health = combat.enermy.getHealth();
-    const healthLimit = combat.enermy.getHealthLimit();
-    const healthText = this.add.text(
-      -enermy.width * enermy.scale / 4,
-      -enermy.height * enermy.scale / 1.5,
-      `${health}/${healthLimit}`
-    );
-    healthText.setFontSize(50);
-
-    // Add parts to the container
-    container.add(enermy)
-    container.add(text)
-    container.add(healthText)
-    container.setData("model", combat.enermy);
-
-    this.physics.add.existing(container);
-    this.enermyContainer = container;
-    return container;
-  }
-
-  async refreshPlayer(
-    scene: Phaser.Scene,
-    combat: Combat
-  ): Promise<Phaser.GameObjects.Container> {
-    if (this.playerContainer) {
-      this.playerContainer.destroy();
-    }
-    const container = this.add.container(300, 500);
-
-    // Add player image
-    const player = this.add.image(0, 0, "girl_2");
-    player.setScale(0.6);
-    player.setInteractive();
-
-    // Display health point
-    const health = combat.player.getHealth();
-    const healthLimit = combat.player.getHealthLimit();
-    const healthText = this.add.text(
-      -player.width * player.scale / 4,
-      -player.height * player.scale / 1.8,
-      `${health}/${healthLimit}`
-    );
-    healthText.setFontSize(50);
-
-    container.add(healthText);
-    container.add(player);
-    container.setData("model", combat.player);
-    this.physics.add.existing(container);
-    this.playerContainer = container;
-    return container;
-  }
-
-  renderNextTurnButton() {
-    const container = this.add.container(0, this.sys.game.canvas.height)
-    const rect = this.add.rectangle(150, -200, 250, 100, 0x6666ff)
-    const name = this.add.text(75, -220, `下一回合`)
-    name.setFontSize(40)
-    container.add(rect)
-    container.add(name)
-
-    rect.setInteractive()
-    rect.on('pointerdown', async (pointer) => {
-      console.log('clicked')
-      this.enermyCollider.destroy();
-      this.playerCollider.destroy();
-      await this.nextTurn.put(undefined);
-    });
-
-    return container
   }
 
   currentCombat(): Combat {

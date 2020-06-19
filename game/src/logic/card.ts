@@ -104,6 +104,7 @@ export class Draw1 implements Card {
     }
 
     const drawPile = input.from.getDrawPile()
+    console.log(drawPile);
     const last = drawPile.last();
     if (!last) {
       return new errors.InvalidBehavior('no card can be drawn');

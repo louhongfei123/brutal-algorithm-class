@@ -16,8 +16,37 @@ export async function moveTo(scene, source, destination, speed, maxtime?): Promi
     }
 }
 
-export async function renderMissed(scene) {
+export async function renderMissed(scene: Phaser.Scene, duration: number) {
     // todo
-    await csp.sleep(10000)
+    let text = scene.add.text(centerX(scene), centerY(scene), 'Missed')
+    text.setFontSize(100)
+    text.setOrigin(0.5, 0.5)
+    await csp.sleep(duration)
+    text.destroy()
+}
 
+export async function renderVictory(scene: Phaser.Scene, duration: number) {
+    // todo
+    let text = scene.add.text(centerX(scene), centerY(scene), 'Victory')
+    text.setFontSize(100)
+    text.setOrigin(0.5, 0.5)
+    await csp.sleep(duration)
+    text.destroy()
+}
+
+export async function renderLost(scene: Phaser.Scene, duration: number) {
+    // todo
+    let text = scene.add.text(centerX(scene), centerY(scene), 'Lost')
+    text.setFontSize(100)
+    text.setOrigin(0.5, 0.5)
+    await csp.sleep(duration)
+    text.destroy()
+}
+
+export function centerX(scene: Phaser.Scene): number {
+    return scene.sys.canvas.width / 2;
+}
+
+export function centerY(scene): number {
+    return scene.sys.canvas.height / 2;
 }

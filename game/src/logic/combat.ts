@@ -68,7 +68,7 @@ export class Combat {
 
     // drawing
     unit.draw(2); // Let's only draw 2 cards as of now. Subject to change.
-
+    console.log(unit.getHand());
     // taking action
     await this.stateChange.put();
     await unit.takeActions({ opponent: this.getOpponent(), stateChange: this.stateChange })
@@ -79,12 +79,14 @@ export class Combat {
     while (winner === undefined) {
       await log(`===================`);
       const unit = this.getUnitOfThisTurn();
-      await log(`${unit.name}的回合`, "\n");
+      await log(`${unit.name}'s turn`, "\n");
       await this.takeTurn(unit);
       this.changeTurn();
       winner = this.hasWinner();
       await log("-------------------\n\n\n");
     }
+    throw new Error();
+    await this.stateChange.close();
     log(`${winner.name} is the Winner!`);
     await this.waitForWinnerChan.put(winner);
     this.loot(winner, this.getLooser());

@@ -68,7 +68,7 @@ export abstract class BaseUnit implements Unit {
         if (effects.from) {
             this.cardEffects.push(effects.from);
         }
-        let ret: Missed;
+        let ret: Missed | undefined = undefined;
         if (effects.to) {
             if (card.kind === 'AttackCard') {
                 // calculate hit rate
