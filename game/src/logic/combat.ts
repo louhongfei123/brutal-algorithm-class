@@ -86,15 +86,15 @@ export class Combat {
       const unit = this.getUnitOfThisTurn();
       await log(`${unit.name}'s turn`, "\n");
       await this.takeTurn(unit);
+      console.log(`${unit.name} has finished its turn`)
       this.changeTurn();
       winner = this.hasWinner();
       await log("-------------------\n\n\n");
     }
-    await this.stateChange.close();
     log(`${winner.name} is the Winner!`);
-    await this.waitForWinnerChan.put(winner);
+    // await this.waitForWinnerChan.put(winner);
     await this.end();
-    this.loot(winner, this.getLooser());
+    await this.loot(winner, this.getLooser());
   }
 
   async end() {

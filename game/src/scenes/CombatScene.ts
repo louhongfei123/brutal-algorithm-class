@@ -80,7 +80,6 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async create() {
-    this.currentCombat().begin();
     let img = this.add.image(400 * 2, 300 * 2, "sky");
     img.setScale(2)
     this.input.on("drag", function (pointer, gameObject, dragX, dragY) {
@@ -92,6 +91,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async gameControlLoop() {
+    let waitForCombat = this.currentCombat().begin();
     let onStateChangeChan = this.currentCombat().onStateChange(); 
     console.log(onStateChangeChan);
     while (true) {
@@ -110,12 +110,15 @@ export default class CombatScene extends Phaser.Scene {
         console.log('hasWinner')
         const text =
           this.currentCombat().hasWinner() === this.currentCombat().player ?
-            await ui.renderVictory(this, 1500) :
-            await ui.renderLost(this, 1500)
+            await ui.renderVictory(this, 3000) :
+            await ui.renderLost(this, 3000)
         
+        console.log('wait for current combat to finish');
+        await waitForCombat;
+        console.log('current combat is finished');
         this.currentCombatIndex++;
         console.log('next combat');
-        this.currentCombat().begin();
+        waitForCombat = this.currentCombat().begin();
         onStateChangeChan = this.currentCombat().onStateChange();
       }
       else if (u === combat.enermy) {
