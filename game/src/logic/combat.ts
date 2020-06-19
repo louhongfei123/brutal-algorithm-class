@@ -85,7 +85,6 @@ export class Combat {
       winner = this.hasWinner();
       await log("-------------------\n\n\n");
     }
-    throw new Error();
     await this.stateChange.close();
     log(`${winner.name} is the Winner!`);
     await this.waitForWinnerChan.put(winner);

@@ -44,8 +44,8 @@ export default class CombatScene extends Phaser.Scene {
     super("game-scene");
 
     const drawPile = new Deque<Card>(
-      new card.Attack(3),
-      new card.Attack(4),
+      new card.Attack(10),
+      new card.Attack(10),
       new card.QiFlow()
     );
     console.log(drawPile);
@@ -68,7 +68,7 @@ export default class CombatScene extends Phaser.Scene {
     this.combats = [
       new Combat(mainC, units.SchoolBully()),
       new Combat(mainC, units.MartialArtBeginner()),
-      // new Combat(mainC, units.EliteInternalDisciple())
+      new Combat(mainC, units.ExternalDisciple())
     ]
   }
 
@@ -91,7 +91,12 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async gameControlLoop() {
-    for await (let change of this.currentCombat().onStateChange()) {
+    let onStateChangeChan = this.currentCombat().onStateChange(); 
+    while (true) {
+      let change = await onStateChangeChan.pop();
+      if(onStateChangeChan.closed()) {
+        throw new Error('unreachable')
+      }
       const combat = this.currentCombat();
       const u = combat.getUnitOfThisTurn();
       const { handCardGroup, enermy, player } = await this.refresh();
@@ -101,10 +106,11 @@ export default class CombatScene extends Phaser.Scene {
           this.currentCombat().hasWinner() === this.currentCombat().player ?
             await ui.renderVictory(this, 1500) :
             await ui.renderLost(this, 1500)
-
+        
         this.currentCombatIndex++;
         console.log('next combat');
         this.currentCombat().begin();
+        onStateChangeChan = this.currentCombat().onStateChange();
       }
       else if (u === combat.enermy) {
         console.log('combat.getUnitOfThisTurn() === combat.participantB')
@@ -145,6 +151,7 @@ export default class CombatScene extends Phaser.Scene {
         console.log('should not');
       }
     }
+    throw new Error('12321321');
   }
 
   async refresh() {

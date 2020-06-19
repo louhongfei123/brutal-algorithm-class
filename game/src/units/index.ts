@@ -39,21 +39,23 @@ export function MartialArtBeginner(): AIUnit {
 }
 
 
-// export function ExternalDisciple(): AIUnit {
-//     return new AIUnit(
-//         "外门弟子",
-//         {
-//             drawPile: new Deque(
-//                 new card.Attack4(),
-//                 new card.Attack5(),
-//                 new card.FollowUpAttack()
-//             ),
-//             equipped: new Deque(
-//                 new card.Health(15)
-//             )
-//         }
-//     );
-// }
+export function ExternalDisciple(): AIUnit {
+    return new AIUnit(
+        "外门弟子",
+        {
+            drawPile: new Deque(
+                new card.Attack(6),
+                new card.Attack(6),
+                new card.Attack(6),
+                // new card.FollowUpAttack()
+            ),
+            equipped: new Deque<EquippmentCard>(
+                new card.Health(20),
+                new card.Agility(20)
+            )
+        }
+    );
+}
 
 // export function EliteExternalDisciple(): AIUnit {
 //     return new AIUnit(
