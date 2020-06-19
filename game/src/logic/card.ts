@@ -65,7 +65,7 @@ export class FollowUpAttack implements Card {
       // todo: check card type to be attack
       effectOnTarget.health += 1;
       return {
-        from:cardIsUsed(input.to, this),
+        from:cardIsUsed(input.from, this),
         to: effectOnTarget
       };
     } else {
