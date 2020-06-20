@@ -16,7 +16,7 @@ import * as errors from "./errors";
 export class Attack implements Card {
   name: string;
   kind = CardCategory.AttackCard;
-  constructor(public readonly damage: number) { 
+  constructor(public readonly damage: number) {
     this.name = `${Attack.name}${damage}`
   }
   effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
@@ -51,21 +51,21 @@ export class FollowUpAttack implements Card {
       return new errors.InvalidBehavior("FollowUpAttack: There is no card on the top of discard pile");
     }
     const last = discardPile.last();
-    if(!last) {
+    if (!last) {
       throw new Error();
     }
-    if(last.kind !== CardCategory.AttackCard) {
+    if (last.kind !== CardCategory.AttackCard) {
       return new errors.InvalidBehavior("FollowUpAttack: The previous used card is not an Attack Card")
     }
-    if(last instanceof Attack) {
+    if (last instanceof Attack) {
       let effectOnTarget = last.effectOnTarget(input.to);
-      if(effectOnTarget instanceof errors.InvalidBehavior) {
+      if (effectOnTarget instanceof errors.InvalidBehavior) {
         return effectOnTarget
       }
       // todo: check card type to be attack
-      effectOnTarget.health += 1;
+      effectOnTarget.health -= 1;
       return {
-        from:cardIsUsed(input.from, this),
+        from: cardIsUsed(input.from, this),
         to: effectOnTarget
       };
     } else {
@@ -87,28 +87,30 @@ export class FollowUpAttack implements Card {
 //   }
 // }
 
-// ///////////////////
-// // Healing Cards //
-// ///////////////////
-// export class Heal implements Card {
-//   kind = CardCategory.NormalCard;
-//   name = Heal.name;
-//   constructor() { }
-//   effect(input: EffectArguments): CardEffect | errors.InvalidBehavior {
-//     let health = 5;
-//     // console.log("getHealth", input.getHealth());
-//     // console.log("getHealthLimit", input.getHealthLimit());
-//     if (input.to.getHealth() + health > input.to.getHealthLimit()) {
-//       health = input.to.getHealthLimit() - input.to.getHealth();
-//     }
-//     // console.log("effect", health);
-//     return {
-//       by: this,
-//       health: health,
-//       handCard: input.to.get
-//     };
-//   }
-// }
+///////////////////
+// Healing Cards //
+///////////////////
+export class Heal implements Card {
+  kind = CardCategory.NormalCard;
+  name = Heal.name;
+  constructor() { }
+  effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | errors.InvalidBehavior {
+    let health = 5;
+    // console.log("getHealth", input.getHealth());
+    // console.log("getHealthLimit", input.getHealthLimit());
+    if (input.to.getHealth() + health > input.to.getHealthLimit()) {
+      health = input.to.getHealthLimit() - input.to.getHealth();
+    }
+    // console.log("effect", health);
+    return {
+      from: cardIsUsed(input.from, this),
+      to: {
+        by: this,
+        health: health
+      }
+    }
+  }
+}
 
 // ////////////////////////
 // // System Effect Card //
@@ -183,7 +185,7 @@ export class QiFlow implements SelfCard {
   effect(input: EffectArguments): { from: CardEffect } | errors.InvalidBehavior {
     const err = sameOrigin(input)
     if (err) {
-      return err; 
+      return err;
     }
     const drawPile = input.from.getDrawPile()
     const last = drawPile.last();
@@ -206,8 +208,8 @@ function cardIsUsed(unit: Unit, card: Card): CardEffect {
   const hand = unit.getHand();
   const discard = unit.getDiscardPile();
   const i = hand.indexOf(card);
-  if(i === -1) {
-      throw new Error('the card has to belong to the unit')
+  if (i === -1) {
+    throw new Error('the card has to belong to the unit')
   }
   return {
     by: card,
@@ -245,6 +247,7 @@ export class Health extends EquippmentCard {
 }
 
 export class Agility extends EquippmentCard {
+  name = Agility.name;
   constructor(public agility: number) {
     super();
   }

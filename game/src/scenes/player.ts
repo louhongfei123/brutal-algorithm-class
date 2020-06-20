@@ -6,6 +6,7 @@ import {
     Missed
 } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
+import * as ui from "../ui";
 
 import CombatScene from "./CombatScene"
 
@@ -21,7 +22,7 @@ export function refreshHandCards(
 
     const hand = combat.player.getHand();
     for (let i = 0; i < hand.length; i++) {
-        const cardContainer = scene.renderCard(hand[i], 200 * 2 + scene.cardWidth * i, 550 * 2, scene.cardWidth, scene.cardHeight);
+        const cardContainer = ui.renderCard(scene, hand[i], 200 * 2 + scene.cardWidth * i, 550 * 2, scene.cardWidth, scene.cardHeight);
         cardContainer.setInteractive();
         scene.input.setDraggable(cardContainer);
         scene.handCards.push(cardContainer);

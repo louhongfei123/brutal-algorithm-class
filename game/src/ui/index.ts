@@ -1,5 +1,9 @@
 import Phaser from "phaser";
 import * as csp from "../lib/csp";
+import {
+    Card, Action, EquippmentCard,
+    Missed
+  } from "../logic/interfaces";
 
 export async function moveTo(scene, source, destination, speed, maxtime?): Promise<void> {
     scene.physics.moveToObject(source, destination, speed, maxtime);
@@ -49,4 +53,26 @@ export function centerX(scene: Phaser.Scene): number {
 
 export function centerY(scene): number {
     return scene.sys.canvas.height / 2;
+}
+
+export function renderCard(scene: Phaser.Scene, card: Card, x, y, width, height): Phaser.GameObjects.Container {
+    // create a container
+    const color = 0x6666ff;
+    const cardContainer = scene.add.container(x, y);
+
+    // create children of the container
+    const rect = scene.add.rectangle(0, 0, width, height, color);
+    rect.setStrokeStyle(4, 0xefc53f);
+    const text = scene.add.text(-70, -120, card.name);
+    text.setFontSize(35)
+    cardContainer.add(rect);
+    cardContainer.add(text);
+
+    // make the container interactive
+    cardContainer.setSize(rect.width, rect.height);
+
+    // add the container to the physics system
+    scene.physics.add.existing(cardContainer);
+    cardContainer.setData("model", card);
+    return cardContainer;
 }

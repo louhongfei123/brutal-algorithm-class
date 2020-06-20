@@ -1,7 +1,7 @@
 import { AIUnit } from "../logic/unit";
 import * as card from "../logic/card";
 import { Deque } from "../logic/math";
-import { EquippmentCard } from "../logic/interfaces"
+import { EquippmentCard, Card } from "../logic/interfaces"
 
 
 export function SchoolBully(): AIUnit {
@@ -15,7 +15,7 @@ export function SchoolBully(): AIUnit {
             ),
             equipped: new Deque<EquippmentCard>(
                 new card.Health(10),
-                new card.Agility(10),
+                new card.Agility(2),
             ),
         }
     );
@@ -31,8 +31,9 @@ export function MartialArtBeginner(): AIUnit {
                 new card.Attack(6),
                 new card.Attack(7),
             ),
-            equipped: new Deque(
-                new card.Health(15)
+            equipped: new Deque<EquippmentCard>(
+                new card.Health(15),
+                new card.Agility(3),
             )
         }
     );
@@ -43,15 +44,15 @@ export function ExternalDisciple(): AIUnit {
     return new AIUnit(
         "外门弟子",
         {
-            drawPile: new Deque(
+            drawPile: new Deque<Card>(
                 new card.Attack(6),
                 new card.Attack(6),
                 new card.Attack(6),
-                // new card.FollowUpAttack()
+                new card.FollowUpAttack(),
             ),
             equipped: new Deque<EquippmentCard>(
                 new card.Health(20),
-                new card.Agility(20)
+                new card.Agility(5)
             )
         }
     );
@@ -109,3 +110,19 @@ export function ExternalDisciple(): AIUnit {
 //         }
 //     );
 // }
+
+export function JapaneseTeacher(): AIUnit {
+    return new AIUnit(
+        "日语老师",
+        {
+            drawPile: new Deque(
+                new card.Hiragana(),
+                new card.Hiragana(),
+                new card.Hiragana(),
+            ),
+            equipped: new Deque<EquippmentCard>(
+                new card.Health(100),
+            ),
+        }
+    );
+}

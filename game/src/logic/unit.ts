@@ -29,6 +29,15 @@ export class MainCharactor extends BaseUnit {
     console.log(this.cards)
   }
 
+  addCardToDrawPile(card: Card) {
+    // this.cards.drawPile.push(card);
+    const drawPile = this.getDrawPile()
+    this.cardEffects.push({
+      by: card,
+      drawPile: new Deque(...drawPile.concat(card))
+    })
+  }
+
   async takeActions(combatState: CombatState): Promise<void> {
     let done = false;
     while (!done) {
@@ -83,8 +92,8 @@ export class AIUnit extends BaseUnit {
       // };
       const card: Card = math.randomPick(this.getHand());
       // check if this action is valid
-      const err = card.effect({from: this, to: combatState.opponent})
-      if(err instanceof InvalidBehavior ) {
+      const err = card.effect({ from: this, to: combatState.opponent })
+      if (err instanceof InvalidBehavior) {
         console.log(err);
         continue;
       }

@@ -1,9 +1,8 @@
 import * as csp from "../lib/csp";
-import { select } from "../lib/csp";
-import { AIUnit } from "../logic/unit";
-import { Unit, CombatState } from "./interfaces";
+import { AIUnit, MainCharactor } from "../logic/unit";
+import { Unit, Card } from "./interfaces";
 import { log } from "./logger";
-
+import { Deque } from "./math";
 
 
 export class Combat {
@@ -12,7 +11,11 @@ export class Combat {
   // private multicaster = new csp.Multicaster<void>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
-  constructor(public player: Unit, public enermy: AIUnit) {
+  constructor(
+    public player: MainCharactor, 
+    public enermy: AIUnit,
+    public reward: Deque<Card>
+  ) {
     // @ts-ignore
     this.stateChange.id = Math.floor(Math.random() * 100)
     console.log(this.stateChange);

@@ -13,6 +13,7 @@ import { Deque } from "../logic/math";
 import * as units from "../units";
 import * as playerHelper from "./player";
 import * as enermyHelper from "./enermy";
+import RewardScene from "./RewardScene";
 
 
 export default class CombatScene extends Phaser.Scene {
@@ -44,20 +45,17 @@ export default class CombatScene extends Phaser.Scene {
     super("game-scene");
 
     const drawPile = new Deque<Card>(
-      new card.Attack(3),
-      new card.FollowUpAttack(),
-      new card.Attack(4),
-      new card.QiFlow(),
+      new card.Attack(100),
+      // new card.Attack(5),
+      // new card.Attack(5),
     );
-    console.log(drawPile);
-    drawPile.last();
     const mainC = new MainCharactor(
       "Player",
       {
         drawPile: drawPile,
         equipped: new Deque<EquippmentCard>(
           new card.Health(10),
-          new card.Agility(30)
+          new card.Agility(2)
         ),
       },
       {
@@ -67,9 +65,13 @@ export default class CombatScene extends Phaser.Scene {
     );
     // Start the campagin
     this.combats = [
-      new Combat(mainC, units.SchoolBully()),
-      new Combat(mainC, units.MartialArtBeginner()),
-      new Combat(mainC, units.ExternalDisciple())
+      new Combat(mainC, units.SchoolBully(), new Deque(
+        new card.Agility(5),
+        new card.Heal(),
+        new card.Health(10),
+      )),
+      new Combat(mainC, units.MartialArtBeginner(), new Deque()),
+      new Combat(mainC, units.ExternalDisciple() ,new Deque())
     ]
   }
 
@@ -80,7 +82,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   async create() {
-    let img = this.add.image(400 * 2, 300 * 2, "sky");
+    let img = this.add.image(ui.centerX(this), ui.centerY(this), "sky");
     img.setScale(2)
     this.input.on("drag", function (pointer, gameObject, dragX, dragY) {
       gameObject.x = dragX;
@@ -102,33 +104,44 @@ export default class CombatScene extends Phaser.Scene {
         throw new Error('unreachable')
       }
       const combat = this.currentCombat();
-      const u = combat.getUnitOfThisTurn();
+      const unitOfThisTurn = combat.getUnitOfThisTurn();
       console.log('refreshing');
       const { handCardGroup, enermy, player } = await this.refresh();
       console.log('refreshed');
       if (combat.hasWinner()) {
         console.log('hasWinner')
+        const timeToWait = 1500
         const text =
           this.currentCombat().hasWinner() === this.currentCombat().player ?
-            await ui.renderVictory(this, 3000) :
-            await ui.renderLost(this, 3000)
+            await ui.renderVictory(this, timeToWait) :
+            await ui.renderLost(this, timeToWait)
         
         console.log('wait for current combat to finish');
-        await waitForCombat;  // todo: debug
+        await waitForCombat;
         console.log('current combat is finished');
+
+        const rewardScene = new RewardScene(combat.reward)
+        const s = this.scene.add('RewardScene', rewardScene, true)
+        const rewardPicked = await rewardScene.done();
+        console.log(rewardPicked)
+        combat.player.addCardToDrawPile(rewardPicked)
+        // wait for reward scene to finish
+
+        // start the next combat
         this.currentCombatIndex++;
         console.log('next combat');
         waitForCombat = this.currentCombat().begin();
         onStateChangeChan = this.currentCombat().onStateChange();
       }
-      else if (u === combat.enermy) {
+      else if (unitOfThisTurn === combat.enermy) {
         console.log('combat.getUnitOfThisTurn() === combat.participantB')
         const action = await combat.enermy.observeActionTaken();
         // todo: render a card attack animation
         // https://phaser.io/examples
         // @ts-ignore
         const body: Phaser.Physics.Arcade.Body = enermy.body
-        const cardPlayedByEnermy = this.renderCard(
+        const cardPlayedByEnermy = ui.renderCard(
+          this,
           action.card,
           enermy.x,
           enermy.y,
@@ -151,7 +164,7 @@ export default class CombatScene extends Phaser.Scene {
 
         cardPlayedByEnermy.destroy();
       }
-      else if (u === combat.player) {
+      else if (unitOfThisTurn === combat.player) {
         console.log('player');
         playerHelper.setNextTurnButtonInteractive(this);
         playerHelper.setHandCardsInteractive(this);
@@ -173,28 +186,6 @@ export default class CombatScene extends Phaser.Scene {
     this.handCardGroup = await playerHelper.refreshHandCards(this, this.currentCombat());
     // todo: render discard pile
     return { handCardGroup: this.handCardGroup, enermy, player, drawPile, discardPile }
-  }
-
-  renderCard(card: Card, x, y, width, height): Phaser.GameObjects.Container {
-    // create a container
-    const color = 0x6666ff;
-    const cardContainer = this.add.container(x, y);
-
-    // create children of the container
-    const rect = this.add.rectangle(0, 0, width, height, color);
-    rect.setStrokeStyle(4, 0xefc53f);
-    const text = this.add.text(-70, -120, card.name);
-    text.setFontSize(35)
-    cardContainer.add(rect);
-    cardContainer.add(text);
-
-    // make the container interactive
-    cardContainer.setSize(rect.width, rect.height);
-
-    // add the container to the physics system
-    this.physics.add.existing(cardContainer);
-    cardContainer.setData("model", card);
-    return cardContainer;
   }
 
   currentCombat(): Combat {
