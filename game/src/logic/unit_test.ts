@@ -1,5 +1,5 @@
 import { MainCharactor } from './unit';
-import { Card } from './interfaces';
+import { Card, EquippmentCard } from './interfaces';
 import { Deque } from './math';
 import * as card from './card';
 import * as assert from 'assert';
@@ -19,7 +19,10 @@ describe('Bug Hunt', () => {
       "主角",
       {
         drawPile: deck,
-        equipped: new Deque(new card.Health(100)),
+        equipped: new Deque<EquippmentCard>(
+            new card.Health(100),
+            new card.Agility(100)
+        ),
       },
       {
         // @ts-ignore
@@ -71,7 +74,7 @@ describe('Bug Hunt', () => {
     mainC.use(deck[2], mainC)
 
     enermy.draw(2);
-    enermy.use(enermy.getDeck()[0], mainC);
+    enermy.use(enermy.getDeck()[1], mainC);
 
     mainC.shuffle()
     mainC.draw(2);

@@ -204,7 +204,7 @@ export class QiFlow implements SelfCard {
   }
 }
 
-function cardIsUsed(unit: Unit, card: Card): CardEffect {
+function cardIsUsed(unit: Unit, card: Card) {
   const hand = unit.getHand();
   const discard = unit.getDiscardPile();
   const i = hand.indexOf(card);

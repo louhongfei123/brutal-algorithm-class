@@ -111,18 +111,18 @@ export function ExternalDisciple(): AIUnit {
 //     );
 // }
 
-export function JapaneseTeacher(): AIUnit {
-    return new AIUnit(
-        "日语老师",
-        {
-            drawPile: new Deque(
-                new card.Hiragana(),
-                new card.Hiragana(),
-                new card.Hiragana(),
-            ),
-            equipped: new Deque<EquippmentCard>(
-                new card.Health(100),
-            ),
-        }
-    );
-}
+// export function JapaneseTeacher(): AIUnit {
+//     return new AIUnit(
+//         "日语老师",
+//         {
+//             drawPile: new Deque(
+//                 new card.Hiragana(),
+//                 new card.Hiragana(),
+//                 new card.Hiragana(),
+//             ),
+//             equipped: new Deque<EquippmentCard>(
+//                 new card.Health(100),
+//             ),
+//         }
+//     );
+// }
