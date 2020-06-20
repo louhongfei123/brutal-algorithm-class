@@ -101,17 +101,18 @@ Let's plant trees!
 - 图版本的深度优先搜索、广度优先搜索 DFS、BFS
 
 ### 第 12 课
-- 最短路径 Shortest Path
-- 迪杰斯特拉算法 Dijkstra's algorithm
-- 贝尔曼-福特算法 Bellman Ford's Algorithm
+- 最短路径 Shortest Path (暴力解法)
 
 ## 第五周
 继续学习图算法
 ### 第 13 课
-- 拓扑排序 Topological Sort
-- Minimum Spanning Tree
+- 练习课
 
 ### 第 14 课
+- 迪杰斯特拉算法 Dijkstra's algorithm
+- 贝尔曼-福特算法 Bellman Ford's Algorithm
+- 拓扑排序 Topological Sort
+- Minimum Spanning Tree
 - Union Find
 
 ### 第 15 课
