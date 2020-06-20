@@ -3,7 +3,7 @@ import * as csp from "../lib/csp";
 import {
     Card, Action, EquippmentCard,
     Missed
-  } from "../logic/interfaces";
+} from "../logic/interfaces";
 
 export async function moveTo(scene, source, destination, speed, maxtime?): Promise<void> {
     scene.physics.moveToObject(source, destination, speed, maxtime);
@@ -75,4 +75,45 @@ export function renderCard(scene: Phaser.Scene, card: Card, x, y, width, height)
     scene.physics.add.existing(cardContainer);
     cardContainer.setData("model", card);
     return cardContainer;
+}
+
+
+interface buttonOption {
+    x: number
+    y: number
+    width: number
+    height: number
+    fontSize?: number
+}
+export function button(scene: Phaser.Scene, text: string, option: buttonOption) {
+
+    let {x, y, width, height, fontSize} = option
+    if(!fontSize) { fontSize = 66}
+
+    const container = scene.add.container(x, y);
+
+    // create children of the container
+    const rectOnHover = scene.add.rectangle(0, 0, width, height, 0xff0000);
+    const rectNoHover = scene.add.rectangle(0, 0, width, height, 0x6666ff);
+    const textObj = scene.add.text(0, 0, text)
+        .setFontSize(fontSize)
+        .setOrigin(0.5)
+
+    container.add(rectOnHover)
+    container.add(rectNoHover)
+    container.add(textObj)
+
+    rectNoHover.setInteractive()
+    rectNoHover.on('pointerover', async () => {
+        rectNoHover.setVisible(false);
+    })
+
+    rectOnHover.setInteractive()
+    rectOnHover.on('pointerout', async () => {
+        rectNoHover.setVisible(true);
+    })
+    return {
+        conatiner: container,
+        rect: rectOnHover
+    }
 }

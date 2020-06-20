@@ -89,6 +89,17 @@ export default class CombatScene extends Phaser.Scene {
       gameObject.y = dragY;
     });
     this.nextTurnButton = playerHelper.renderNextTurnButton(this);
+    const startMenu = ui.button(this, "返回主菜单", {
+      x: 150, 
+      y: ui.centerY(this) * 1.9, 
+      width: 250, 
+      height: 80,
+      fontSize: 40
+    });
+    startMenu.rect.on('pointerdown', async (pointer) => {
+      this.scene.remove(this);
+      this.scene.start('StartMenu');
+    });
     this.gameControlLoop();
   }
 
@@ -190,5 +201,9 @@ export default class CombatScene extends Phaser.Scene {
 
   currentCombat(): Combat {
     return this.combats[this.currentCombatIndex];
+  }
+  
+  async done() {
+
   }
 }
