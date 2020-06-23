@@ -16,8 +16,11 @@ export abstract class BaseUnit implements Unit {
         public name: string,
         protected readonly cards: CardInit
     ) {
-
         // apply effects of equippments
+        this.init(cards)
+    }
+
+    init(cards: CardInit) {
         for (let card of cards.equipped) {
             const effect = card.effect({
                 from: this,
@@ -116,7 +119,7 @@ export abstract class BaseUnit implements Unit {
     getDrawPile(): Deque<Card> {
         const drawPile = this.reduceCurrentState('drawPile');
         if (!drawPile) {
-            return this.cards.drawPile;
+            return this.cards.deck;
         }
         return drawPile;
     }

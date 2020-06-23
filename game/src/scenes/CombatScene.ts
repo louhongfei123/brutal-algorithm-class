@@ -17,8 +17,10 @@ import RewardScene from "./RewardScene";
 
 
 export default class CombatScene extends Phaser.Scene {
-  combats: Combat[];
-  currentCombatIndex: number = 0;
+  // Game State / Model
+  combat: Combat;
+
+  // UI
   // @ts-ignore
   enermyContainer: Phaser.GameObjects.GameObject;
   // @ts-ignore
@@ -36,43 +38,12 @@ export default class CombatScene extends Phaser.Scene {
   // @ts-ignore
   handCardGroup: Phaser.GameObjects.Group
 
-  userAction = new csp.UnbufferredChannel<Action>();
-  nextTurn = new csp.UnbufferredChannel<undefined>();
   readonly cardWidth = 90 * 2;
   readonly cardHeight = 148 * 2;
 
-  constructor() {
-    super("game-scene");
-
-    const drawPile = new Deque<Card>(
-      new card.Attack(100),
-      // new card.Attack(5),
-      // new card.Attack(5),
-    );
-    const mainC = new MainCharactor(
-      "Player",
-      {
-        drawPile: drawPile,
-        equipped: new Deque<EquippmentCard>(
-          new card.Health(10),
-          new card.Agility(2)
-        ),
-      },
-      {
-        actions: this.userAction,
-        nextTurn: this.nextTurn,
-      }
-    );
-    // Start the campagin
-    this.combats = [
-      new Combat(mainC, units.SchoolBully(), new Deque(
-        new card.Agility(5),
-        new card.Heal(),
-        new card.Health(10),
-      )),
-      new Combat(mainC, units.MartialArtBeginner(), new Deque()),
-      new Combat(mainC, units.ExternalDisciple() ,new Deque())
-    ]
+  constructor(combat: Combat) {
+    super(CombatScene.name);
+    this.combat = combat;
   }
 
   preload() {
@@ -97,7 +68,7 @@ export default class CombatScene extends Phaser.Scene {
       fontSize: 40
     });
     startMenu.rect.on('pointerdown', async (pointer) => {
-      this.scene.remove(this);
+      this.scene.bringToTop('StartMenu')
       this.scene.start('StartMenu');
     });
     this.gameControlLoop();
@@ -135,14 +106,12 @@ export default class CombatScene extends Phaser.Scene {
         const s = this.scene.add('RewardScene', rewardScene, true)
         const rewardPicked = await rewardScene.done();
         console.log(rewardPicked)
-        combat.player.addCardToDrawPile(rewardPicked)
+        combat.player.addCardToDeck(rewardPicked)
         // wait for reward scene to finish
 
-        // start the next combat
-        this.currentCombatIndex++;
-        console.log('next combat');
-        waitForCombat = this.currentCombat().begin();
-        onStateChangeChan = this.currentCombat().onStateChange();
+        // Destory this scene
+        this.scene.remove(this);
+        return;
       }
       else if (unitOfThisTurn === combat.enermy) {
         console.log('combat.getUnitOfThisTurn() === combat.participantB')
@@ -200,7 +169,7 @@ export default class CombatScene extends Phaser.Scene {
   }
 
   currentCombat(): Combat {
-    return this.combats[this.currentCombatIndex];
+    return this.combat;
   }
   
   async done() {

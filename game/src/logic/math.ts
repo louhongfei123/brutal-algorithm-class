@@ -31,4 +31,11 @@ export class Deque<T> extends Array<T> {
   remove(i): Deque<T> {
     return new Deque(...this.slice(0, i).concat(this.slice(i + 1)))
   }
+
+  push(ele: T): number {
+    if(this.indexOf(ele) !== -1) {
+      throw Error('can not add the same card')
+    }
+    return super.push(ele);
+  }
 }

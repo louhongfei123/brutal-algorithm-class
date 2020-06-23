@@ -8,7 +8,7 @@ export function SchoolBully(): AIUnit {
     return new AIUnit(
         "校霸",
         {
-            drawPile: new Deque(
+            deck: new Deque(
                 new card.Attack(3),
                 new card.Attack(4),
                 new card.Attack(5),
@@ -26,7 +26,7 @@ export function MartialArtBeginner(): AIUnit {
     return new AIUnit(
         "武学习徒",
         {
-            drawPile: new Deque(
+            deck: new Deque(
                 new card.Attack(5),
                 new card.Attack(6),
                 new card.Attack(7),
@@ -44,7 +44,7 @@ export function ExternalDisciple(): AIUnit {
     return new AIUnit(
         "外门弟子",
         {
-            drawPile: new Deque<Card>(
+            deck: new Deque<Card>(
                 new card.Attack(6),
                 new card.Attack(6),
                 new card.Attack(6),

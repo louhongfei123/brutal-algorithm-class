@@ -117,3 +117,8 @@ export function button(scene: Phaser.Scene, text: string, option: buttonOption) 
         rect: rectOnHover
     }
 }
+
+export function transit(from: Phaser.Scene, to: Phaser.Scene, name: string) {
+    from.scene.add(name, to, true);
+    from.scene.remove(from);
+}

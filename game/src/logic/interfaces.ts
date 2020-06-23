@@ -52,7 +52,7 @@ export interface CombatState {
 
 export interface CardInit {
   // 抽牌堆
-  readonly drawPile: math.Deque<Card>;
+  readonly deck: math.Deque<Card>;
   // 已装备的牌
   readonly equipped: math.Deque<EquippmentCard>;
 }

@@ -105,7 +105,7 @@ export function setHandCardsInteractive(scene: CombatScene) {
                 };
                 handCard.destroy();
                 console.log(action, 'telling unit the action is taken');
-                await scene.userAction.put(action);
+                await scene.combat.player.userCommunications.actions.put(action)
                 console.log('the unit has received the action');
             }
         }
@@ -134,7 +134,7 @@ export function renderNextTurnButton(scene: CombatScene) {
         console.log(scene.enermyCollider);
         scene.enermyCollider.destroy();
         scene.playerCollider.destroy();
-        await scene.nextTurn.put(undefined);
+        await scene.combat.player.userCommunications.nextTurn.put();
     });
 
     return {

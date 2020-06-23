@@ -83,6 +83,8 @@ export class Combat {
   }
 
   async begin() {
+    console.log(this.player)
+    this.player.resetForNewCombat();
     let winner: any = undefined;
     while (winner === undefined) {
       await log(`===================`);

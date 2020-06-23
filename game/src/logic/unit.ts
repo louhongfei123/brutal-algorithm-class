@@ -12,7 +12,7 @@ export interface UserControlFunctions {
 
 export interface UserCommunications {
   actions: csp.Channel<Action>;
-  nextTurn: csp.Channel<undefined>;
+  nextTurn: csp.Channel<void>;
 }
 
 export class MainCharactor extends BaseUnit {
@@ -23,19 +23,19 @@ export class MainCharactor extends BaseUnit {
     cards: CardInit,
     // public choiceChan: csp.Channel<string>,
     // public userControlFunctions: UserControlFunctions,
-    private userCommunications: UserCommunications
+    public userCommunications: UserCommunications
   ) {
     super(name, cards);
     console.log(this.cards)
   }
 
-  addCardToDrawPile(card: Card) {
-    // this.cards.drawPile.push(card);
-    const drawPile = this.getDrawPile()
-    this.cardEffects.push({
-      by: card,
-      drawPile: new Deque(...drawPile.concat(card))
-    })
+  addCardToDeck(card: Card) {
+    this.cards.deck.push(card);
+  }
+
+  resetForNewCombat() {
+    this.cardEffects = new Deque();
+    this.init(this.cards);
   }
 
   async takeActions(combatState: CombatState): Promise<void> {
@@ -128,7 +128,7 @@ export class AIUnit extends BaseUnit {
   }
 
   getDeck() {
-    return this.cards.drawPile;
+    return this.cards.deck;
   }
 
   async goToNextTurnChan() {

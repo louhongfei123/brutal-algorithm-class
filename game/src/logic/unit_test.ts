@@ -18,7 +18,7 @@ describe('Bug Hunt', () => {
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: deck,
+        deck: deck,
         equipped: new Deque<EquippmentCard>(
             new card.Health(100),
             new card.Agility(100)
@@ -60,7 +60,7 @@ describe('Bug Hunt', () => {
     const mainC = new MainCharactor(
       "主角",
       {
-        drawPile: deck,
+        deck: deck,
         equipped: new Deque(new card.Health(100)),
       },
       {
