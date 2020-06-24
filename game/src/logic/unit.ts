@@ -1,10 +1,18 @@
 import * as csp from "../lib/csp";
 import { log } from "./logger";
-import { Unit, Card, CardInit, CombatState, Action, CardEffect, Missed } from "./interfaces";
-import * as math from './math';
-import { Deque } from './math';
-import { InvalidBehavior } from './errors';
-import { BaseUnit } from './unit_base';
+import {
+  Unit,
+  Card,
+  CardInit,
+  CombatState,
+  Action,
+  CardEffect,
+  Missed,
+} from "./interfaces";
+import * as math from "./math";
+import { Deque } from "./math";
+import { InvalidBehavior } from "./errors";
+import { BaseUnit } from "./unit_base";
 
 export interface UserControlFunctions {
   getChoiceFromUser(): Promise<string>;
@@ -23,10 +31,10 @@ export class MainCharactor extends BaseUnit {
     cards: CardInit,
     // public choiceChan: csp.Channel<string>,
     // public userControlFunctions: UserControlFunctions,
-    public userCommunications: UserCommunications
+    public userCommunications: UserCommunications,
   ) {
     super(name, cards);
-    console.log(this.cards)
+    console.log(this.cards);
   }
 
   addCardToDeck(card: Card) {
@@ -41,21 +49,24 @@ export class MainCharactor extends BaseUnit {
   async takeActions(combatState: CombatState): Promise<void> {
     let done = false;
     while (!done) {
-      console.log('player is thinking');
+      console.log("player is thinking");
       done = await csp.select([
         [this.userCommunications.actions, async (action) => {
-          console.log('userCommunications.actions');
-          const err = this.use(action.card, action.to)
+          console.log("userCommunications.actions");
+          const err = this.use(action.card, action.to);
           console.log(err);
-          console.log(combatState.stateChange, 'telling the UI the action has been evaluated');
-          await combatState.stateChange.put()
-          console.log('the UI has received the msg');
+          console.log(
+            combatState.stateChange,
+            "telling the UI the action has been evaluated",
+          );
+          await combatState.stateChange.put();
+          console.log("the UI has received the msg");
           return false;
         }],
         [this.userCommunications.nextTurn, async () => {
-          console.log('userCommunications.nextTurn')
+          console.log("userCommunications.nextTurn");
           return true;
-        }]
+        }],
       ]);
     }
   }
@@ -72,8 +83,9 @@ export class AIUnit extends BaseUnit {
   readonly myTurn = csp.chan<void>();
 
   readonly actionTaken: csp.Channel<Action> = new csp.UnbufferredChannel();
-  readonly actionTakenMulticaster: csp.Multicaster<Action> = new csp.Multicaster(this.actionTaken)
-  readonly actionTakenObserverToUI = this.actionTakenMulticaster.copy()
+  readonly actionTakenMulticaster: csp.Multicaster<Action> = new csp
+    .Multicaster(this.actionTaken);
+  readonly actionTakenObserverToUI = this.actionTakenMulticaster.copy();
   // readonly actionTakenObserverToCombat = this.actionTakenMulticaster.copy()
   readonly goToNexTurnChan_ = csp.chan<undefined>();
 
@@ -88,11 +100,11 @@ export class AIUnit extends BaseUnit {
       // const action = {
       //   from: this,
       //   to: combatState.opponent,
-      //   card: 
+      //   card:
       // };
       const card: Card = math.randomPick(this.getHand());
       // check if this action is valid
-      const err = card.effect({ from: this, to: combatState.opponent })
+      const err = card.effect({ from: this, to: combatState.opponent });
       if (err instanceof InvalidBehavior) {
         console.log(err);
         continue;
@@ -100,8 +112,8 @@ export class AIUnit extends BaseUnit {
       action = {
         from: this,
         to: combatState.opponent,
-        card: card
-      }
+        card: card,
+      };
     }
     await this.actionTaken.put(action);
   }
@@ -120,7 +132,7 @@ export class AIUnit extends BaseUnit {
   // }
 
   commit(action: Action): Missed | void {
-    const err = this.use(action.card, action.to)
+    const err = this.use(action.card, action.to);
     if (err instanceof InvalidBehavior) {
       throw err;
     }

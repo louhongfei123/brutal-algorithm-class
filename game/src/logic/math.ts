@@ -23,18 +23,18 @@ export function randomPick(array: any[]): any {
 
 export class Deque<T> extends Array<T> {
   first(): T | undefined {
-    return this[0]
+    return this[0];
   }
   last(): T | undefined {
-    return this[this.length - 1]
+    return this[this.length - 1];
   }
   remove(i): Deque<T> {
-    return new Deque(...this.slice(0, i).concat(this.slice(i + 1)))
+    return new Deque(...this.slice(0, i).concat(this.slice(i + 1)));
   }
 
   push(ele: T): number {
-    if(this.indexOf(ele) !== -1) {
-      throw Error('can not add the same card')
+    if (this.indexOf(ele) !== -1) {
+      throw Error("can not add the same card");
     }
     return super.push(ele);
   }

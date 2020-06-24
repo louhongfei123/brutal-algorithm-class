@@ -1,9 +1,8 @@
 import * as math from "./math";
 import { Deque } from "./math";
 import * as csp from "../lib/csp";
-import { InvalidBehavior } from './errors';
-import { Combat } from './combat';
-
+import { InvalidBehavior } from "./errors";
+import { Combat } from "./combat";
 
 export enum CardCategory {
   NormalCard = "NormalCard",
@@ -25,7 +24,9 @@ export interface Card {
   kind: CardCategory;
   name: string;
   desp?: string;
-  effect(input: EffectArguments): { from?: CardEffect, to?: CardEffect } | InvalidBehavior;
+  effect(
+    input: EffectArguments,
+  ): { from?: CardEffect; to?: CardEffect } | InvalidBehavior;
 }
 
 export interface NormalCard extends Card {
@@ -36,7 +37,9 @@ export interface NormalCard extends Card {
 export abstract class EquippmentCard implements Card {
   kind = CardCategory.EquippmentCard;
   name = "";
-  abstract effect(input: EffectArguments): { from: CardEffect, to: CardEffect } | InvalidBehavior;
+  abstract effect(
+    input: EffectArguments,
+  ): { from: CardEffect; to: CardEffect } | InvalidBehavior;
 }
 
 export interface Action extends EffectArguments {
@@ -59,40 +62,39 @@ export interface CardInit {
 
 // A difference vector that represents the change of state of the unit.
 export interface CardEffect {
-  by: Card
+  by: Card;
   // delta
-  health?: number
-  healthLimit?: number
-  agility?: number
+  health?: number;
+  healthLimit?: number;
+  agility?: number;
   // current state
-  handCard?: Deque<Card>
-  drawPile?: Deque<Card>
-  discardPile?: Deque<Card>
+  handCard?: Deque<Card>;
+  drawPile?: Deque<Card>;
+  discardPile?: Deque<Card>;
 }
-
 
 export class Missed {}
 
 export interface Unit {
   cardEffects: Deque<CardEffect>;
-  name: string
+  name: string;
 
   // coordinations
   takeActions(combatState: CombatState): Promise<void>;
-  
+
   // mutations
-  draw(n: number)
-  shuffle()
-  use(card: Card, to: Unit, combat: Combat): InvalidBehavior | Missed| void
-  
+  draw(n: number);
+  shuffle();
+  use(card: Card, to: Unit, combat: Combat): InvalidBehavior | Missed | void;
+
   // observations
-  getHand(): Deque<Card>
-  getDrawPile(): Deque<Card>
-  getDiscardPile(): Deque<Card>
-  getHealth(): number
-  getHealthLimit(): number
+  getHand(): Deque<Card>;
+  getDrawPile(): Deque<Card>;
+  getDiscardPile(): Deque<Card>;
+  getHealth(): number;
+  getHealthLimit(): number;
   // Agility determines the hit rate and the action order
-  getAgility(): number
-  isHit(from: Unit): boolean
-  isDead(): boolean
+  getAgility(): number;
+  isHit(from: Unit): boolean;
+  isDead(): boolean;
 }

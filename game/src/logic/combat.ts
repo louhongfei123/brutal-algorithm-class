@@ -4,7 +4,6 @@ import { Unit, Card } from "./interfaces";
 import { log } from "./logger";
 import { Deque } from "./math";
 
-
 export class Combat {
   unitOfThisTurn = this.player; // Participatn A defaults to the user.
   private stateChange = new csp.UnbufferredChannel<void>();
@@ -12,18 +11,18 @@ export class Combat {
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
 
   constructor(
-    public player: MainCharactor, 
+    public player: MainCharactor,
     public enermy: AIUnit,
-    public reward: Deque<Card>
+    public reward: Deque<Card>,
   ) {
     // @ts-ignore
-    this.stateChange.id = Math.floor(Math.random() * 100)
+    this.stateChange.id = Math.floor(Math.random() * 100);
     console.log(this.stateChange);
-    console.log(this.stateChange.popActions.length)
+    console.log(this.stateChange.popActions.length);
   }
 
   onStateChange(): csp.Channel<void> {
-    return this.stateChange
+    return this.stateChange;
   }
 
   getUnitOfThisTurn(): Unit {
@@ -71,7 +70,7 @@ export class Combat {
   async takeTurn(unit: Unit) {
     // shuffling from discard pile if neededFgoToNextTurnChan
     if (unit.getDrawPile().length === 0) {
-      unit.shuffle()
+      unit.shuffle();
     }
 
     // drawing
@@ -79,11 +78,13 @@ export class Combat {
     console.log(unit.getHand());
     // taking action
     await this.stateChange.put();
-    await unit.takeActions({ opponent: this.getOpponent(), stateChange: this.stateChange })
+    await unit.takeActions(
+      { opponent: this.getOpponent(), stateChange: this.stateChange },
+    );
   }
 
   async begin() {
-    console.log(this.player)
+    console.log(this.player);
     this.player.resetForNewCombat();
     let winner: any = undefined;
     while (winner === undefined) {
@@ -91,7 +92,7 @@ export class Combat {
       const unit = this.getUnitOfThisTurn();
       await log(`${unit.name}'s turn`, "\n");
       await this.takeTurn(unit);
-      console.log(`${unit.name} has finished its turn`)
+      console.log(`${unit.name} has finished its turn`);
       this.changeTurn();
       winner = this.hasWinner();
       await log("-------------------\n\n\n");
@@ -103,7 +104,7 @@ export class Combat {
   }
 
   async end() {
-    await this.stateChange.close()
+    await this.stateChange.close();
     await this.waitForWinnerChan.close();
   }
 
@@ -113,8 +114,7 @@ export class Combat {
 
   // Winner can loot 1 card from the looser
   async loot(winner: Unit, looser: Unit) {
-    console.log('loot is not done yet');
+    console.log("loot is not done yet");
     // throw new Error()
   }
 }
-

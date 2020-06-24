@@ -1,61 +1,58 @@
 import { AIUnit } from "../logic/unit";
 import * as card from "../logic/card";
 import { Deque } from "../logic/math";
-import { EquippmentCard, Card } from "../logic/interfaces"
-
+import { EquippmentCard, Card } from "../logic/interfaces";
 
 export function SchoolBully(): AIUnit {
-    return new AIUnit(
-        "校霸",
-        {
-            deck: new Deque(
-                new card.Attack(3),
-                new card.Attack(4),
-                new card.Attack(5),
-            ),
-            equipped: new Deque<EquippmentCard>(
-                new card.Health(10),
-                new card.Agility(2),
-            ),
-        }
-    );
+  return new AIUnit(
+    "校霸",
+    {
+      deck: new Deque(
+        new card.Attack(3),
+        new card.Attack(4),
+        new card.Attack(5),
+      ),
+      equipped: new Deque<EquippmentCard>(
+        new card.Health(10),
+        new card.Agility(2),
+      ),
+    },
+  );
 }
-
 
 export function MartialArtBeginner(): AIUnit {
-    return new AIUnit(
-        "武学习徒",
-        {
-            deck: new Deque(
-                new card.Attack(5),
-                new card.Attack(6),
-                new card.Attack(7),
-            ),
-            equipped: new Deque<EquippmentCard>(
-                new card.Health(15),
-                new card.Agility(3),
-            )
-        }
-    );
+  return new AIUnit(
+    "武学习徒",
+    {
+      deck: new Deque(
+        new card.Attack(5),
+        new card.Attack(6),
+        new card.Attack(7),
+      ),
+      equipped: new Deque<EquippmentCard>(
+        new card.Health(15),
+        new card.Agility(3),
+      ),
+    },
+  );
 }
 
-
 export function ExternalDisciple(): AIUnit {
-    return new AIUnit(
-        "外门弟子",
-        {
-            deck: new Deque<Card>(
-                new card.Attack(6),
-                new card.Attack(6),
-                new card.Attack(6),
-                new card.FollowUpAttack(),
-            ),
-            equipped: new Deque<EquippmentCard>(
-                new card.Health(20),
-                new card.Agility(5)
-            )
-        }
-    );
+  return new AIUnit(
+    "外门弟子",
+    {
+      deck: new Deque<Card>(
+        new card.Attack(6),
+        new card.Attack(6),
+        new card.Attack(6),
+        new card.FollowUpAttack(),
+      ),
+      equipped: new Deque<EquippmentCard>(
+        new card.Health(20),
+        new card.Agility(5),
+      ),
+    },
+  );
 }
 
 // export function EliteExternalDisciple(): AIUnit {
