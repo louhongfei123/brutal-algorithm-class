@@ -16,7 +16,7 @@ export class Attack implements Card {
   name: string;
   kind = CardCategory.AttackCard;
   constructor(public readonly damage: number) {
-    this.name = `${Attack.name}${damage}`;
+    this.name = `Attack ${damage}`;
   }
   effect(
     input: EffectArguments,
