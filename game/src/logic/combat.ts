@@ -1,11 +1,12 @@
 import * as csp from "../lib/csp";
-import { AIUnit, MainCharactor } from "../logic/unit";
+import { AIUnit } from "./unit_enermy";
+import { MainCharactor } from "./unit_player"
 import { Unit, Card } from "./interfaces";
 import { log } from "./logger";
 import { Deque } from "./math";
 
 export class Combat {
-  unitOfThisTurn = this.player; // Participatn A defaults to the user.
+  unitOfThisTurn: Unit = this.player; // Participatn A defaults to the user.
   private stateChange = new csp.UnbufferredChannel<void>();
   // private multicaster = new csp.Multicaster<void>(this.stateChange);
   private waitForWinnerChan = new csp.UnbufferredChannel<Unit>();
@@ -68,7 +69,7 @@ export class Combat {
   }
 
   async takeTurn(unit: Unit) {
-    // shuffling from discard pile if neededFgoToNextTurnChan
+    // shuffling from discard pile if needed
     if (unit.getDrawPile().length === 0) {
       unit.shuffle();
     }
@@ -78,6 +79,7 @@ export class Combat {
     console.log(unit.getHand());
     // taking action
     await this.stateChange.put();
+    console.log('taking actions')
     await unit.takeActions(
       { opponent: this.getOpponent(), stateChange: this.stateChange },
     );

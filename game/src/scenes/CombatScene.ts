@@ -1,18 +1,11 @@
 import Phaser from "phaser";
-import { MainCharactor } from "../logic/unit";
-import * as card from "../logic/card";
 import {
-    Card,
-    Action,
-    EquippmentCard,
     Missed,
 } from "../logic/interfaces";
 import { Combat } from "../logic/combat";
 
 import * as csp from "../lib/csp";
 import * as ui from "../ui";
-import { Deque } from "../logic/math";
-import * as units from "../units";
 import * as playerHelper from "./player";
 import * as enermyHelper from "./enermy";
 import RewardScene from "./RewardScene";
@@ -83,6 +76,8 @@ export default class CombatScene extends Phaser.Scene {
     async gameControlLoop() {
         let waitForCombat = this.currentCombat().begin();
         let onStateChangeChan = this.currentCombat().onStateChange();
+        let playerNextTurn = this.combat.player.nextTurnCaster.copy()
+
         console.log(onStateChangeChan);
         while (true) {
             console.log("waiting for state change", onStateChangeChan);
@@ -120,7 +115,8 @@ export default class CombatScene extends Phaser.Scene {
                     new LevelListScene(this.gameState),
                     LevelListScene.name)
                 return;
-            } else if (unitOfThisTurn === combat.enermy) {
+            }
+            else if (unitOfThisTurn === combat.enermy) {
                 console.log("combat.getUnitOfThisTurn() === combat.participantB");
                 const action = await combat.enermy.observeActionTaken();
                 // todo: render a card attack animation
@@ -149,13 +145,33 @@ export default class CombatScene extends Phaser.Scene {
                 } else {
                     await csp.sleep(waitDuration);
                 }
-
                 cardPlayedByEnermy.destroy();
-            } else if (unitOfThisTurn === combat.player) {
+            }
+            else if (unitOfThisTurn === combat.player) {
                 console.log("player");
                 playerHelper.setNextTurnButtonInteractive(this);
                 playerHelper.setHandCardsInteractive(this);
-            } else {
+                
+                async function isMissed(scene) {
+                    let done = false;
+                    while(!done) {
+                        console.log(111);
+                        await csp.select([
+                            [combat.player.actionMissed, async () => {
+                                console.log(222);
+                                await ui.renderMissed(scene, 1500);
+                            }],
+                            [playerNextTurn, async () => {
+                                console.log(333);
+                                done = true;
+                            }]
+                        ])
+                        console.log(444);
+                    }
+                }
+                isMissed(this);
+            }
+            else {
                 console.log("should not");
             }
             console.log("end of loop");

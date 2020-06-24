@@ -4,8 +4,16 @@ import CombatScene from "./CombatScene";
 import LevelListScene from "./LevelList";
 import * as csp from "../lib/csp";
 import { Combat } from "../logic/combat";
+import { Game } from '../logic/game';
 
 export default class StoryScene extends Phaser.Scene {
+
+    constructor(
+        public gameState: Game
+    ) {
+        super(StoryScene.name)
+    }
+
   preload() {
     // this.load.image("start-menu", "assets/start-menu.jpg");
   }
@@ -52,11 +60,8 @@ export default class StoryScene extends Phaser.Scene {
       await displayText(storyArea, text);
       await continueButton.pop();
     }
-    // await continueButton.pop();
-    console.log("61");
-    this.scene.remove(this);
-    const scene = new LevelListScene();
-    this.scene.add(LevelListScene.name, scene, true);
+    const scene = new LevelListScene(this.gameState);
+    ui.transit(this, scene, LevelListScene.name)
   }
 }
 

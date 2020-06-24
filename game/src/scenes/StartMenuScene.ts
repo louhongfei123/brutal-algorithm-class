@@ -4,7 +4,7 @@ import { Game } from "../logic/game";
 
 import Phaser from "phaser";
 import StoryScene from "./StoryScene";
-import { MainCharactor } from "../logic/unit";
+import { MainCharactor } from "../logic/unit_player";
 import * as card from "../logic/card";
 import {
     Card,
@@ -26,7 +26,7 @@ export default class StartMenuScene extends Phaser.Scene {
             ),
             equipped: new Deque<EquippmentCard>(
                 new card.Health(10),
-                new card.Agility(2),
+                new card.Agility(0),
             ),
         },
         {
@@ -71,7 +71,7 @@ export default class StartMenuScene extends Phaser.Scene {
             height: 80,
         });
         button.rect.on("pointerdown", async (pointer) => {
-            const scene = new StoryScene();
+            const scene = new StoryScene(this.gameState);
             ui.transit(this, scene, StoryScene.name);
         });
 

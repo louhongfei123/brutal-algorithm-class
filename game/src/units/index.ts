@@ -1,4 +1,4 @@
-import { AIUnit } from "../logic/unit";
+import { AIUnit } from "../logic/unit_enermy";
 import * as card from "../logic/card";
 import { Deque } from "../logic/math";
 import { EquippmentCard, Card } from "../logic/interfaces";

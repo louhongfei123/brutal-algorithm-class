@@ -153,11 +153,11 @@ export function renderNextTurnButton(scene: CombatScene) {
 
   rect.on("pointerdown", async (pointer) => {
     scene.nextTurnButton.rect.disableInteractive();
-    console.log("clicked", ++i);
-    console.log(scene.enermyCollider);
     scene.enermyCollider.destroy();
     scene.playerCollider.destroy();
+    console.log('Next Turn Button is clicked');
     await scene.combat.player.userCommunications.nextTurn.put();
+    console.log('Next Turn message is received');
   });
 
   return {
@@ -166,7 +166,6 @@ export function renderNextTurnButton(scene: CombatScene) {
   };
 }
 
-let i = 0;
 export function setNextTurnButtonInteractive(scene: CombatScene) {
   console.log("setNextTurnButtonInteractive");
   scene.nextTurnButton.rect.setInteractive();

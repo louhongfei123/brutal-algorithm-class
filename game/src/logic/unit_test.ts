@@ -1,10 +1,10 @@
-import { MainCharactor } from "./unit";
+import { MainCharactor } from "./unit_player";
 import { Card, EquippmentCard } from "./interfaces";
 import { Deque } from "./math";
 import * as card from "./card";
 import * as assert from "assert";
 import * as units from "../units";
-import main from "../main";
+
 
 describe("Bug Hunt", () => {
   it("has cards in the draw pile at the beginning", () => {

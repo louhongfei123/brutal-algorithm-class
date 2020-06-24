@@ -1,20 +1,12 @@
 import Phaser from "phaser";
-import { MainCharactor } from "../logic/unit";
-import * as card from "../logic/card";
 import {
   Card,
-  Action,
-  EquippmentCard,
-  Missed,
 } from "../logic/interfaces";
-import { Combat } from "../logic/combat";
 
 import * as csp from "../lib/csp";
 import * as ui from "../ui";
 import { Deque } from "../logic/math";
-import * as units from "../units";
-import * as playerHelper from "./player";
-import * as enermyHelper from "./enermy";
+
 
 export default class RewardScene extends Phaser.Scene {
   doneChan = csp.chan<Card>();
