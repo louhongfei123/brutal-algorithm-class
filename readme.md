@@ -109,34 +109,34 @@ Let's plant trees!
 - 练习课
 
 ### 第 14 课
-- 迪杰斯特拉算法 Dijkstra's algorithm
-- 贝尔曼-福特算法 Bellman Ford's Algorithm
 - 拓扑排序 Topological Sort
-- Minimum Spanning Tree
-- Union Find
 
 ### 第 15 课
-- Minimal Cut / Maximal Flow
-- 子图匹配 Subgraph matching
-
-## 第六周
-动态规划，做一个时间刺客！
-### 第 16 课
 - 初探动态规划
 - 递归与循环的关系
 - 递归式循环
 - 斐波那契数列
+- 子集合之和问题 Subset Sum Problem
 
-### 第 17 课
+## 第六周
+动态规划，做一个时间刺客！
+### 第 16 课
 - 再看动态规划
-- Subset Sum Problem
 - 0-1 Knapsack Problem
 
-### 第 18 课
+### 第 17 课
 - 子字符串问题
 - 子序列问题
 - Edit Distance
 - 分词问题和 Unicode 算法 Word Break Problem and Unicode Algorithm
+
+### 第 18 课
+- 迪杰斯特拉算法 Dijkstra's algorithm
+- 贝尔曼-福特算法 Bellman Ford's Algorithm
+- Minimal Cut / Maximal Flow
+- 子图匹配 Subgraph matching
+- Minimum Spanning Tree
+- Union Find
 
 ## 第七周
 开启语言世界的大门
