@@ -131,39 +131,29 @@ Let's plant trees!
 - 分词问题和 Unicode 算法 Word Break Problem and Unicode Algorithm
 
 ### 第 18 课
-- 迪杰斯特拉算法 Dijkstra's algorithm
-- 贝尔曼-福特算法 Bellman Ford's Algorithm
-- Minimal Cut / Maximal Flow
-- 子图匹配 Subgraph matching
-- Minimum Spanning Tree
-- Union Find
+- 职业经验分享
 
 ## 第七周
-开启语言世界的大门
 ### 第 19 课
-- 有限状态机
-- 正则表达式
-- 递归思维（函数式） vs 循环思维（过程式）
+- 哈夫曼编码介绍
 
 ### 第 20 课
+- 正侧表达式
 - 词法分析 Lexical Analysis
 
 ### 第 21 课
 语法很重要
 - Context Free Language
-- 语法解析 Grammar Parsing 
+- 语法解析 Grammar Parsing （最基础的方法） 
 
 ## 第八周
 贪得无厌，必有算法！Greedy Algorithm
 ### 第 22 课
-- 贪婪算法
+- 哈夫曼编码代码分享
 
 ### 第 23 课
-- 压缩算法
-- 哈夫曼编码
 
 ### 第 24 课
-- 哈夫曼解码
 
 # FAQ 常见问题
 ### 用什么语言？
